@@ -30,7 +30,7 @@ export default function AdminPage() {
       router.replace("/login");
       return;
     }
-    const { data: profile, error: profileError } = await supabase
+    const { data: profile, error: profileError } = await getSupabase()
       .from("profiles").select("role,account_status,full_name")
       .eq("id", authData.user.id).maybeSingle();
     if (profileError || profile?.role !== "admin" || profile.account_status !== "active") {
@@ -38,7 +38,7 @@ export default function AdminPage() {
       setLoading(false);
       return;
     }
-    const { data, error: requestError } = await supabase
+    const { data, error: requestError } = await getSupabase()
       .from("registration_requests")
       .select("id,full_name,email,phone,ministry_summary,years_in_ministry,created_at")
       .eq("status", "pending")
