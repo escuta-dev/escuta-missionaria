@@ -148,6 +148,7 @@ create table public.private_requests (
 -- Consentimentos sao eventos append-only: para revogar, inserir novo evento granted=false.
 create table public.consents (
   id uuid primary key default gen_random_uuid(),
+  event_no bigint generated always as identity unique,
   missionary_id uuid not null references public.missionaries(id) on delete cascade,
   consent_type public.consent_type not null,
   granted boolean not null,
@@ -237,7 +238,7 @@ as $$
     select c.granted and c.revoked_at is null
     from public.consents c
     where c.missionary_id = p_missionary_id and c.consent_type = p_type
-    order by c.created_at desc, c.id desc
+    order by c.event_no desc
     limit 1
   ), false);
 $$;
@@ -245,7 +246,19 @@ $$;
 revoke all on function public.is_admin() from public;
 revoke all on function public.current_missionary_id() from public;
 revoke all on function public.has_active_consent(uuid, public.consent_type) from public;
-grant execute on function public.is_admin(), public.current_missionary_id(), public.has_active_consent(uuid, public.consent_type) to authenticated, anon;
+revoke all on function public.is_missionary_active(uuid) from public;
+grant execute on function public.is_admin(), public.current_missionary_id(), public.has_active_consent(uuid, public.consent_type), public.is_missionary_active(uuid) to authenticated, anon;
+
+
+create or replace function public.is_missionary_active(p_missionary_id uuid)
+returns boolean language sql stable security definer set search_path = ''
+as $
+  select exists (
+    select 1 from public.missionaries m
+    join public.profiles p on p.id = m.profile_id
+    where m.id = p_missionary_id and p.account_status = 'active'
+  );
+$;
 
 create or replace function public.set_updated_at()
 returns trigger language plpgsql set search_path = ''
@@ -336,6 +349,7 @@ begin
          select 1 from public.profiles p
          where p.id = new.approved_by and p.role = 'admin' and p.account_status = 'active'
        )
+       or not public.is_missionary_active(new.missionary_id)
        or not public.has_active_consent(new.missionary_id, 'public_profile') then
       raise exception 'Publicacao exige aprovacao de administrador ativo e consentimento vigente';
     end if;
@@ -506,6 +520,7 @@ with check (missionary_id = (select public.current_missionary_id()));
 create policy public_profiles_public_read on public.public_profiles for select to anon, authenticated
 using (
   publication_status = 'published'
+  and public.is_missionary_active(missionary_id)
   and public.has_active_consent(missionary_id, 'public_profile')
 );
 create policy public_profiles_admin_all on public.public_profiles for all to authenticated
