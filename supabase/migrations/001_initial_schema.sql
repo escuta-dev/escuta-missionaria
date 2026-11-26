@@ -397,7 +397,16 @@ with check (missionary_id = (select public.current_missionary_id()));
 
 create policy public_profiles_public_read on public.public_profiles
 for select to anon, authenticated
-using (publication_status = 'published');
+using (
+  publication_status = 'published'
+  and exists (
+    select 1 from public.consents c
+    where c.missionary_id = public_profiles.missionary_id
+      and c.consent_type = 'public_profile'
+      and c.granted = true
+      and c.revoked_at is null
+  )
+);
 create policy public_profiles_admin_all on public.public_profiles
 for all to authenticated
 using ((select public.is_admin()))
