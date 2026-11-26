@@ -1,0 +1,61 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
+
+:root {
+  --blue-deep: #183B56;
+  --blue: #426B83;
+  --sand: #E9E4D9;
+  --off-white: #FAF9F6;
+  --gold: #B58B61;
+  --ink: #20313d;
+  --muted: #687782;
+  --line: #e3e7e8;
+}
+
+* { box-sizing: border-box; }
+html { min-height: 100%; background: var(--off-white); }
+body { margin: 0; color: var(--ink); font-family: "DM Sans", Arial, sans-serif; background: var(--off-white); }
+button, input, textarea { font: inherit; }
+a { color: inherit; }
+.page-shell { min-height: 100vh; }
+.topbar { height: 76px; display: flex; align-items: center; justify-content: space-between; max-width: 1160px; margin: 0 auto; padding: 0 28px; }
+.brand { display: flex; align-items: center; gap: 12px; color: var(--blue-deep); font-weight: 700; letter-spacing: .02em; }
+.brand-mark { width: 38px; height: 38px; display: grid; place-items: center; border: 1px solid var(--gold); border-radius: 50%; color: var(--gold); font-family: "Playfair Display", Georgia, serif; font-size: 21px; }
+.top-link { font-size: 13px; color: var(--blue); text-decoration: none; }
+.hero { background: linear-gradient(120deg, #183B56 0%, #315d78 72%, #426B83 100%); color: white; padding: 76px 28px 90px; }
+.hero-inner { max-width: 1104px; margin: 0 auto; display: grid; grid-template-columns: 1.1fr .9fr; gap: 64px; align-items: center; }
+.eyebrow { text-transform: uppercase; letter-spacing: .18em; font-size: 11px; font-weight: 700; color: #e1c9aa; }
+.hero h1 { font-family: "Playfair Display", Georgia, serif; font-size: clamp(42px, 5.4vw, 66px); line-height: 1.06; font-weight: 500; margin: 18px 0 22px; max-width: 630px; }
+.hero p { color: #e2eaf0; font-size: 16px; line-height: 1.8; max-width: 550px; margin: 0; }
+.hero-note { border-left: 1px solid var(--gold); padding: 10px 0 10px 25px; color: #f1e8dc; font-family: "Playfair Display", Georgia, serif; font-size: 22px; line-height: 1.55; }
+.content { max-width: 1104px; margin: -36px auto 0; padding: 0 28px 72px; position: relative; }
+.registration-card { background: white; border: 1px solid #e8e7e2; border-radius: 16px; box-shadow: 0 18px 55px rgba(24,59,86,.09); padding: 38px; max-width: 760px; margin: 0 auto; }
+.registration-card h2 { font-family: "Playfair Display", Georgia, serif; font-weight: 600; color: var(--blue-deep); font-size: 32px; margin: 0 0 10px; }
+.card-intro { color: var(--muted); line-height: 1.7; margin: 0 0 28px; font-size: 14px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.field { display: flex; flex-direction: column; gap: 7px; }
+.field.full { grid-column: 1 / -1; }
+.field label { color: var(--blue-deep); font-weight: 600; font-size: 13px; }
+.field input, .field textarea { width: 100%; border: 1px solid #dce2e5; border-radius: 8px; background: #fff; color: var(--ink); padding: 12px 13px; outline: none; transition: border .15s, box-shadow .15s; }
+.field input:focus, .field textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(66,107,131,.12); }
+.field textarea { min-height: 126px; resize: vertical; line-height: 1.6; }
+.hint { color: var(--muted); font-size: 11px; line-height: 1.5; }
+.turnstile-slot { min-height: 66px; display: flex; align-items: center; }
+.submit-button { width: 100%; background: var(--blue-deep); color: white; border: 0; border-radius: 8px; padding: 15px 18px; font-weight: 700; cursor: pointer; transition: background .15s, transform .15s; }
+.submit-button:hover { background: var(--blue); }
+.submit-button:disabled { opacity: .55; cursor: not-allowed; }
+.notice { margin-top: 18px; border-radius: 8px; padding: 13px 15px; font-size: 13px; line-height: 1.6; }
+.notice.success { background: #edf5f0; color: #285b42; border: 1px solid #d6e8dc; }
+.notice.error { background: #fbefed; color: #873e35; border: 1px solid #f0d8d4; }
+.privacy-note { margin-top: 23px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; line-height: 1.7; }
+.footer { text-align: center; color: #84919a; font-size: 11px; padding: 0 20px 34px; }
+@media (max-width: 760px) {
+  .topbar { height: 66px; padding: 0 20px; }
+  .hero { padding: 55px 20px 76px; }
+  .hero-inner { grid-template-columns: 1fr; gap: 28px; }
+  .hero-note { font-size: 18px; max-width: 460px; }
+  .content { padding: 0 14px 48px; }
+  .registration-card { padding: 26px 20px; }
+  .registration-card h2 { font-size: 28px; }
+  .form-grid { grid-template-columns: 1fr; gap: 15px; }
+  .field.full { grid-column: auto; }
+}
