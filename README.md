@@ -10,28 +10,31 @@ Plataforma independente de escuta, acompanhamento, conexao e apoio a missionario
 - Apoio financeiro realizado diretamente entre apoiador e missionario/organizacao; a plataforma nao custodia recursos.
 - Acesso individual por missionario, com aprovacao administrativa.
 
-## Arquitetura prevista
+## Arquitetura
 
 - Next.js + TypeScript
 - Supabase (PostgreSQL, Auth e Row Level Security)
 - Vercel
 - GitHub
+- Cloudflare Turnstile para protecao do formulario publico
 
 ## Estado tecnico
 
-- Banco Supabase de staging criado em Sao Paulo (`sa-east-1`).
-- Migrations SQL 001 a 006 aplicadas.
-- 12 tabelas publicas com RLS habilitado.
+- Banco Supabase de staging em Sao Paulo (`sa-east-1`).
+- Migrations 001 a 009 aplicadas.
+- 13 tabelas publicas com RLS habilitado.
 - Funcoes privilegiadas isoladas no esquema `private`.
-- Testes iniciais de isolamento entre dois missionarios e de visibilidade publica condicionada a consentimento aprovados.
+- Testes iniciais de isolamento entre missionarios, visibilidade publica e protecao de privilegios aprovados.
+- Edge Functions `submit-registration` e `approve-registration` publicadas.
+- Formulario publico inicial criado no Next.js.
 - Sem dados reais de missionarios neste ambiente.
-- Edge Functions, Storage, autenticacao por convite e interface ainda pendentes.
 
 ## Documentacao
 
+- [Configuracao do ambiente e primeiro administrador](docs/SETUP.md)
 - [Migration inicial](supabase/migrations/001_initial_schema.sql)
 - [Plano de testes e resultados](supabase/TEST_PLAN.md)
 
 ## Seguranca
 
-Nunca versionar chaves secretas, tokens, senhas, dados pessoais de missionarios ou informacoes de campos missionarios sensiveis. A chave `service_role` deve permanecer exclusivamente no backend confiavel.
+Nunca versionar chaves secretas, tokens, senhas, dados pessoais de missionarios ou informacoes de campos missionarios sensiveis. A chave `service_role` e qualquer chave `sb_secret_...` devem permanecer exclusivamente no backend confiavel.
