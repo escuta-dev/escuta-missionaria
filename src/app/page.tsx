@@ -185,8 +185,7 @@ export default function Home() {
           <div className="privacy-note">
             <strong>Privacidade e cuidado.</strong> Suas informações serão usadas para analisar
             esta solicitação e estabelecer contato sobre a plataforma. Não publicaremos seu nome,
-            história ou dados sem consentimento específico. Você pode solicitar a revisão ou exclusão
-            dos dados pelos canais oficiais do projeto.
+            história ou dados sem consentimento específico. Os direitos de acesso, correção e exclusão serão atendidos por canal oficial, que será informado na versão definitiva do Aviso de Privacidade.
           </div>
         </div>
       </section>
