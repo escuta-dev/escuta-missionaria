@@ -1,30 +1,28 @@
-# Plano de testes da Escuta Missionaria
-
-Este plano deve ser executado em um projeto Supabase de desenvolvimento/staging, nunca inicialmente no banco de producao.
-
 ## Estado atual
 
 Ambiente de staging: projeto Supabase **Escuta Missionaria**, regiao Sao Paulo (`sa-east-1`). Banco sem dados reais.
 
-- Migrations 001 a 006 aplicadas com sucesso.
-- 12 tabelas publicas criadas; RLS ativado nas 12.
-- 30 politicas RLS registradas.
-- Funcoes `SECURITY DEFINER` movidas para o esquema `private`; nenhuma permanece em `public`.
-- Privilegios de `TRUNCATE`, `REFERENCES` e `TRIGGER` removidos de `anon`, `authenticated` e `service_role` nas tabelas publicas.
-- Indices para as seis chaves estrangeiras apontadas pelo Advisor adicionados.
+- Migrations 001 a 009 aplicadas com sucesso.
+- 13 tabelas publicas criadas; RLS habilitado nas 13.
+- Funcoes `SECURITY DEFINER` isoladas no esquema `private`; nenhuma permanece em `public`.
+- Privilegios de `TRUNCATE`, `REFERENCES` e `TRIGGER` removidos de roles da API.
+- Indices para chaves estrangeiras e fila de cadastro criados.
+- Tabela de tentativas antiabuso sem acesso de leitura/escrita para `anon` e `authenticated`; apenas backend privilegiado acessa hashes.
 - Advisor de seguranca: sem alertas.
 - Advisor de saude: sem alertas.
-- Advisor de desempenho: sem chaves estrangeiras sem indice; permanecem avisos informativos de indices ainda nao usados (banco vazio) e politicas permissivas sobrepostas (separacao intencional entre acesso administrativo e acesso do titular).
-- Teste RLS temporario A/B: aprovado; cada missionario visualizou somente seu proprio perfil, cadastro de missionario, pedido privado e periodo de relatorio. Registros de teste foram revertidos com `ROLLBACK`.
+- Advisor de desempenho: avisos informativos de indices nao usados (ambiente ainda vazio) e politicas permissivas sobrepostas (separacao de acesso administrativo e acesso do titular).
+- Teste RLS temporario A/B: aprovado; cada missionario visualizou somente seus proprios dados. Registros revertidos com `ROLLBACK`.
+- Teste de consulta publica: aprovado; visitante anonimo visualizou somente perfil publicado com consentimento vigente. Registros revertidos.
 - Teste de escalacao de privilegio: aprovado; missionario nao conseguiu alterar o proprio papel para admin.
-- Teste de submissao de perfil: aprovado; missionario conseguiu enviar perfil como `pending_review`, mas nao conseguiu publica-lo nem atribuir aprovacao administrativa.
-- Teste de trigger de atualizacao: aprovado; missionario autenticado conseguiu atualizar seu proprio cadastro e o trigger de `updated_at` executou corretamente.
-- Teste de permissoes SQL: aprovado; `anon` nao possui leitura de tabelas privadas nem privilegios de `TRUNCATE`; `authenticated` e `service_role` tambem nao possuem `TRUNCATE` nas tabelas publicas.
-- Teste de consulta publica: aprovado; visitante anonimo visualizou somente perfil publicado com consentimento vigente; perfil em rascunho nao apareceu. Registros de teste foram revertidos.
-- Teste de sintaxe e aplicacao das migrations: aprovado pelo Supabase.
-- Teste completo das transicoes de relatorio, organizacoes, consentimento/revogacao, papel administrativo e fluxo de convite: pendente.
-- Teste de Storage: pendente; bucket e politicas ainda nao foram criados.
-- Teste de Edge Functions, CAPTCHA, rate limit e e-mail: pendente; backend ainda nao implementado.
+- Teste de submissao de perfil: aprovado; missionario enviou perfil para revisao, sem poder aprovar ou publicar a si mesmo.
+- Teste de trigger de atualizacao: aprovado.
+- Edge Functions `submit-registration` (JWT desativado por ser formulario publico, com Turnstile obrigatorio) e `approve-registration` (JWT obrigatorio e verificacao de administrador ativo) publicadas.
+- Formulario publico inicial Next.js criado; build automatizado configurado, execucao pendente.
+- Testes end-to-end de convite por e-mail, login, recuperacao de acesso e painel administrativo: pendentes.
+- Segredos `TURNSTILE_SECRET_KEY`, `RATE_LIMIT_SALT`, `APP_ORIGIN` e `INVITE_REDIRECT_URL` ainda precisam ser configurados no painel Supabase.
+- Chave publica Turnstile e variaveis `NEXT_PUBLIC_*` precisam ser configuradas na Vercel.
+- Cadastro publico do Auth deve ser desativado e o primeiro administrador deve ser inicializado manualmente conforme `docs/SETUP.md`.
+- Storage ainda nao foi configurado.
 
 ## Preparacao do ambiente de teste
 
