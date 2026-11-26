@@ -2,7 +2,7 @@
 
 Ambiente de staging: projeto Supabase **Escuta Missionaria**, regiao Sao Paulo (`sa-east-1`). Banco sem dados reais.
 
-- Migrations 001 a 009 aplicadas com sucesso.
+- Migrations 001 a 010 aplicadas com sucesso.
 - 13 tabelas publicas criadas; RLS habilitado nas 13.
 - Funcoes `SECURITY DEFINER` isoladas no esquema `private`; nenhuma permanece em `public`.
 - Privilegios de `TRUNCATE`, `REFERENCES` e `TRIGGER` removidos de roles da API.
@@ -17,7 +17,8 @@ Ambiente de staging: projeto Supabase **Escuta Missionaria**, regiao Sao Paulo (
 - Teste de submissao de perfil: aprovado; missionario enviou perfil para revisao, sem poder aprovar ou publicar a si mesmo.
 - Teste de trigger de atualizacao: aprovado.
 - Edge Functions `submit-registration` (JWT desativado por ser formulario publico, com Turnstile obrigatorio) e `approve-registration` (JWT obrigatorio e verificacao de administrador ativo) publicadas.
-- Formulario publico inicial Next.js criado; build automatizado configurado, execucao pendente.
+- Formulario publico, login, aceite de convite, painel administrativo inicial e rascunho do Aviso de Privacidade criados em Next.js; build automatizado em validacao.
+- Aceite expresso do Aviso de Privacidade registrado no banco com versao e data; aviso permanece preliminar e bloqueia abertura publica ate revisao.
 - Testes end-to-end de convite por e-mail, login, recuperacao de acesso e painel administrativo: pendentes.
 - Segredos `TURNSTILE_SECRET_KEY`, `RATE_LIMIT_SALT`, `APP_ORIGIN` e `INVITE_REDIRECT_URL` ainda precisam ser configurados no painel Supabase.
 - Chave publica Turnstile e variaveis `NEXT_PUBLIC_*` precisam ser configuradas na Vercel.
