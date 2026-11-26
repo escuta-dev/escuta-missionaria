@@ -332,8 +332,12 @@ as $$
 begin
   if new.publication_status = 'published' then
     if new.approved_by is null or new.approved_at is null
+       or not exists (
+         select 1 from public.profiles p
+         where p.id = new.approved_by and p.role = 'admin' and p.account_status = 'active'
+       )
        or not public.has_active_consent(new.missionary_id, 'public_profile') then
-      raise exception 'Publicacao exige aprovacao administrativa e consentimento vigente';
+      raise exception 'Publicacao exige aprovacao de administrador ativo e consentimento vigente';
     end if;
   end if;
   return new;
@@ -540,6 +544,8 @@ create trigger audit_public_profiles after insert or update or delete on public.
 for each row execute function public.write_audit_log();
 
 grant usage on schema public to anon, authenticated;
+-- O backend confiavel (Edge Function) recebe solicitacoes publicas; nunca expor service_role no navegador.
+grant select, insert, update on public.registration_requests to service_role;
 grant select, update on public.profiles to authenticated;
 grant select, insert, update on public.missionaries to authenticated;
 grant select, insert, update, delete on public.organizations to authenticated;
