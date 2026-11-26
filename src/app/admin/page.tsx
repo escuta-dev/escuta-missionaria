@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { getSupabase } from "@/lib/supabase";
 
 type RequestRow = {
   id: string;
@@ -25,7 +25,7 @@ export default function AdminPage() {
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
-    const { data: authData, error: authError } = await supabase.auth.getUser();
+    const { data: authData, error: authError } = await getSupabase().auth.getUser();
     if (authError || !authData.user) {
       router.replace("/login");
       return;
@@ -53,7 +53,7 @@ export default function AdminPage() {
   async function approve(id: string) {
     setBusyId(id);
     setNotice("");
-    const { data, error: invokeError } = await supabase.functions.invoke("approve-registration", {
+    const { data, error: invokeError } = await getSupabase().functions.invoke("approve-registration", {
       body: { request_id: id },
     });
     setBusyId(null);
@@ -67,11 +67,11 @@ export default function AdminPage() {
 
   async function reject(id: string) {
     if (!window.confirm("Deseja realmente rejeitar esta solicitação?")) return;
-    const { data: authData } = await supabase.auth.getUser();
+    const { data: authData } = await getSupabase().auth.getUser();
     if (!authData.user) return router.replace("/login");
     setBusyId(id);
     setError("");
-    const { error: updateError } = await supabase.from("registration_requests").update({
+    const { error: updateError } = await getSupabase().from("registration_requests").update({
       status: "rejected",
       reviewed_by: authData.user.id,
       reviewed_at: new Date().toISOString(),
@@ -87,7 +87,7 @@ export default function AdminPage() {
   }
 
   async function logout() {
-    await supabase.auth.signOut();
+    await getSupabase().auth.signOut();
     router.replace("/login");
   }
 
