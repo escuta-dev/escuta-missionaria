@@ -483,6 +483,27 @@ export type Database = {
           },
         ]
       }
+      registration_attempts: {
+        Row: {
+          created_at: string
+          email_hash: string
+          id: string
+          ip_hash: string | null
+        }
+        Insert: {
+          created_at?: string
+          email_hash: string
+          id?: string
+          ip_hash?: string | null
+        }
+        Update: {
+          created_at?: string
+          email_hash?: string
+          id?: string
+          ip_hash?: string | null
+        }
+        Relationships: []
+      }
       registration_requests: {
         Row: {
           created_at: string
@@ -492,6 +513,8 @@ export type Database = {
           id: string
           ministry_summary: string
           phone: string | null
+          privacy_accepted_at: string
+          privacy_notice_version: string
           reviewed_at: string | null
           reviewed_by: string | null
           status: Database["public"]["Enums"]["registration_status"]
@@ -505,6 +528,8 @@ export type Database = {
           id?: string
           ministry_summary: string
           phone?: string | null
+          privacy_accepted_at?: string
+          privacy_notice_version?: string
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: Database["public"]["Enums"]["registration_status"]
@@ -518,6 +543,8 @@ export type Database = {
           id?: string
           ministry_summary?: string
           phone?: string | null
+          privacy_accepted_at?: string
+          privacy_notice_version?: string
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: Database["public"]["Enums"]["registration_status"]
