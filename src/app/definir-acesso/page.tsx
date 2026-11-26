@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
+import { getSupabase } from "@/lib/supabase";
 
 export default function SetAccessPage() {
   const router = useRouter();
@@ -18,7 +18,7 @@ export default function SetAccessPage() {
   useEffect(() => {
     setRecovery(new URLSearchParams(window.location.search).get("mode") === "recovery");
     let active = true;
-    supabase.auth.getSession().then(({ data }) => {
+    getSupabase().auth.getSession().then(({ data }) => {
       if (!active) return;
       setHasSession(Boolean(data.session));
       setReady(true);
@@ -38,7 +38,7 @@ export default function SetAccessPage() {
       return;
     }
     setBusy(true);
-    const { error } = await supabase.auth.updateUser({ password });
+    const { error } = await getSupabase().auth.updateUser({ password });
     setBusy(false);
     if (error) {
       setMessage("Não foi possível definir a senha. Solicite um novo convite ou recuperação.");
