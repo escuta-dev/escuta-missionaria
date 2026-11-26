@@ -59,3 +59,44 @@ a { color: inherit; }
   .form-grid { grid-template-columns: 1fr; gap: 15px; }
   .field.full { grid-column: auto; }
 }
+.auth-shell { min-height: 100vh; display: grid; place-items: center; padding: 32px 18px; background: linear-gradient(145deg, #f7f5ef, #e9e4d9); }
+.auth-card { width: min(100%, 470px); padding: 38px; background: white; border: 1px solid #e8e7e2; border-radius: 16px; box-shadow: 0 18px 55px rgba(24,59,86,.09); }
+.auth-brand { display: inline-block; margin-bottom: 38px; color: var(--blue); text-decoration: none; font-size: 13px; font-weight: 700; }
+.auth-card h1 { margin: 12px 0; color: var(--blue-deep); font: 600 34px/1.15 "Playfair Display", Georgia, serif; }
+.auth-card p { color: var(--muted); font-size: 14px; line-height: 1.7; }
+.auth-form { display: flex; flex-direction: column; gap: 9px; margin-top: 25px; }
+.auth-form label { margin-top: 8px; color: var(--blue-deep); font-size: 13px; font-weight: 600; }
+.auth-form input { width: 100%; border: 1px solid #dce2e5; border-radius: 8px; padding: 13px; outline: none; }
+.auth-form input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(66,107,131,.12); }
+.auth-form .submit-button { margin-top: 15px; }
+.text-button { border: 0; background: none; padding: 10px 0; color: var(--blue); font-size: 13px; font-weight: 600; cursor: pointer; }
+.text-button:disabled { opacity: .5; cursor: not-allowed; }
+.auth-card .submit-button { display: block; text-align: center; text-decoration: none; }
+.admin-shell { min-height: 100vh; background: #f7f6f2; }
+.admin-header { height: 72px; padding: 0 max(24px, calc((100vw - 1080px) / 2)); display: flex; align-items: center; justify-content: space-between; background: white; border-bottom: 1px solid var(--line); }
+.admin-header .auth-brand { margin: 0; }
+.admin-content { max-width: 1080px; margin: 0 auto; padding: 56px 24px 80px; }
+.admin-content h1 { color: var(--blue-deep); font: 600 38px/1.15 "Playfair Display", Georgia, serif; margin: 12px 0; }
+.admin-lead { color: var(--muted); font-size: 14px; margin: 0 0 28px; }
+.request-list { display: grid; gap: 16px; margin-top: 25px; }
+.request-card { background: white; border: 1px solid #e3e7e8; border-radius: 12px; padding: 24px; }
+.request-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
+.request-top h2 { color: var(--blue-deep); margin: 0 0 6px; font: 600 23px "Playfair Display", Georgia, serif; }
+.request-top a { color: var(--blue); font-size: 13px; }
+.request-date { color: var(--muted); font-size: 12px; }
+.request-meta { display: flex; flex-wrap: wrap; gap: 16px; margin: 17px 0; color: var(--muted); font-size: 12px; }
+.request-summary { white-space: pre-wrap; line-height: 1.7; color: var(--ink); font-size: 14px; }
+.request-actions { display: flex; align-items: center; gap: 14px; margin-top: 20px; }
+.request-actions .submit-button { width: auto; padding: 12px 17px; }
+.reject-button { background: white; color: #8b4941; border: 1px solid #e8ceca; border-radius: 8px; padding: 11px 16px; font-weight: 600; cursor: pointer; }
+.reject-button:disabled { opacity: .5; cursor: not-allowed; }
+.empty-state { margin-top: 25px; background: white; border: 1px dashed #cbd4d9; border-radius: 12px; padding: 36px; color: var(--muted); text-align: center; }
+@media (max-width: 600px) {
+  .auth-card { padding: 28px 22px; }
+  .admin-content { padding: 36px 16px 60px; }
+  .admin-content h1 { font-size: 31px; }
+  .request-card { padding: 19px; }
+  .request-top { flex-direction: column; gap: 7px; }
+  .request-actions { flex-direction: column; align-items: stretch; }
+  .request-actions .submit-button { width: 100%; }
+}
