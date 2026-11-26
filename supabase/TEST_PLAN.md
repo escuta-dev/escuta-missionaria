@@ -4,11 +4,23 @@ Este plano deve ser executado em um projeto Supabase de desenvolvimento/staging,
 
 ## Estado atual
 
-- Revisao estatica do SQL: realizada.
-- Teste de sintaxe no PostgreSQL/Supabase: pendente; exige executar em projeto de teste.
-- Teste real de RLS com usuarios separados: pendente.
+Ambiente de staging: projeto Supabase **Escuta Missionaria**, regiao Sao Paulo (`sa-east-1`). Banco sem dados reais.
+
+- Migrations 001 a 006 aplicadas com sucesso.
+- 12 tabelas publicas criadas; RLS ativado nas 12.
+- 30 politicas RLS registradas.
+- Funcoes `SECURITY DEFINER` movidas para o esquema `private`; nenhuma permanece em `public`.
+- Privilegios de `TRUNCATE`, `REFERENCES` e `TRIGGER` removidos de `anon`, `authenticated` e `service_role` nas tabelas publicas.
+- Indices para as seis chaves estrangeiras apontadas pelo Advisor adicionados.
+- Advisor de seguranca: sem alertas.
+- Advisor de saude: sem alertas.
+- Advisor de desempenho: sem chaves estrangeiras sem indice; permanecem avisos informativos de indices ainda nao usados (banco vazio) e politicas permissivas sobrepostas (separacao intencional entre acesso administrativo e acesso do titular).
+- Teste RLS temporario A/B: aprovado; cada missionario visualizou somente seu proprio perfil, cadastro de missionario, pedido privado e periodo de relatorio. Registros de teste foram revertidos com `ROLLBACK`.
+- Teste de consulta publica: aprovado; visitante anonimo visualizou somente perfil publicado com consentimento vigente; perfil em rascunho nao apareceu. Registros de teste foram revertidos.
+- Teste de sintaxe e aplicacao das migrations: aprovado pelo Supabase.
+- Teste completo das transicoes de relatorio, organizacoes, consentimento/revogacao, papel administrativo e fluxo de convite: pendente.
 - Teste de Storage: pendente; bucket e politicas ainda nao foram criados.
-- Teste de Edge Functions, convite e e-mail: pendente; backend ainda nao implementado.
+- Teste de Edge Functions, CAPTCHA, rate limit e e-mail: pendente; backend ainda nao implementado.
 
 ## Preparacao do ambiente de teste
 
