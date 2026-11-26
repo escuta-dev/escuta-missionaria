@@ -82,6 +82,7 @@ export default function Home() {
           years_in_ministry: form.get("years_in_ministry"),
           ministry_summary: form.get("ministry_summary"),
           captcha_token: captchaToken,
+          privacy_accepted: form.get("privacy_accepted") === "on",
         }),
       });
       const result = await response.json();
@@ -158,6 +159,12 @@ export default function Home() {
                 <textarea id="ministry_summary" name="ministry_summary" required minLength={10} maxLength={5000}
                   placeholder="Onde atua, com quem caminha e qual é o foco do seu trabalho..." />
                 <span className="hint">Não inclua informações que possam colocar pessoas ou comunidades em risco.</span>
+              </div>
+              <div className="field full">
+                <label className="consent-label">
+                  <input type="checkbox" name="privacy_accepted" required />
+                  <span>Li e concordo com o uso dos dados para análise desta solicitação e contato sobre a plataforma. Consulte o <a href="/privacidade" target="_blank" rel="noreferrer">Aviso de Privacidade</a>. *</span>
+                </label>
               </div>
               <div className="field full">
                 <label>Verificação de segurança *</label>
