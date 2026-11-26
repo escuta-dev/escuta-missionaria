@@ -8,6 +8,8 @@ No Supabase Dashboard, abra **Edge Functions > Secrets** e configure:
 
 - `TURNSTILE_SECRET_KEY`: segredo do widget Cloudflare Turnstile.
 - `RATE_LIMIT_SALT`: texto aleatorio longo (minimo 32 bytes) usado para gerar hashes de IP/e-mail.
+
+O formulario tambem exige aceite expresso do Aviso de Privacidade e registra a versao e a data do aceite. O aviso atual (`draft-1.0`) e preliminar: nao abra o cadastro publicamente ate completar a identificacao do responsavel, contato, retencao e direitos LGPD.
 - `APP_ORIGIN`: origem exata do site, por exemplo `https://www.escutamissionaria.com.br`.
 - `INVITE_REDIRECT_URL`: destino apos aceitar convite, por exemplo `https://www.escutamissionaria.com.br/definir-acesso`.
 
