@@ -67,22 +67,17 @@ export default function AdminPage() {
 
   async function reject(id: string) {
     if (!window.confirm("Deseja realmente rejeitar esta solicitação?")) return;
-    const { data: authData } = await getSupabase().auth.getUser();
-    if (!authData.user) return router.replace("/login");
     setBusyId(id);
     setError("");
-    const { error: updateError } = await getSupabase().from("registration_requests").update({
-      status: "rejected",
-      reviewed_by: authData.user.id,
-      reviewed_at: new Date().toISOString(),
-      decision_note: "Solicitação não aprovada após análise administrativa.",
-    }).eq("id", id).eq("status", "pending");
+    const { data, error: invokeError } = await getSupabase().functions.invoke("approve-registration", {
+      body: { request_id: id, action: "reject" },
+    });
     setBusyId(null);
-    if (updateError) {
-      setError("Não foi possível concluir a análise desta solicitação.");
+    if (invokeError) {
+      setError("Não foi possível rejeitar. Atualize a fila e tente novamente.");
       return;
     }
-    setNotice("Solicitação rejeitada.");
+    setNotice(data?.message ?? "Solicitação rejeitada.");
     await load();
   }
 
