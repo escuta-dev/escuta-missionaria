@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
     }
 
     const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-    const [{ count: emailAttempts }, { count: ipAttempts }] = await Promise.all([
+    const [emailRate, ipRate] = await Promise.all([
       admin.from("registration_attempts").select("id", { count: "exact", head: true })
         .eq("email_hash", emailHash).gte("created_at", since),
       ipHash
@@ -87,8 +87,12 @@ Deno.serve(async (req) => {
             .eq("ip_hash", ipHash).gte("created_at", since)
         : Promise.resolve({ count: 0, error: null }),
     ]);
+    if (emailRate.error || ipRate.error) {
+      console.error("Falha ao verificar limite de cadastro.");
+      return reply(503, { error: "Formulario temporariamente indisponivel." });
+    }
 
-    if ((emailAttempts ?? 0) > 2 || (ipAttempts ?? 0) > 5) {
+    if ((emailRate.count ?? 0) > 2 || (ipRate.count ?? 0) > 5) {
       return reply(429, { error: "Limite de solicitacoes atingido. Tente novamente mais tarde." });
     }
 
