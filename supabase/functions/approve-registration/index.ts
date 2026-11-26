@@ -1,4 +1,4 @@
-import { createClient } from "npm:@supabase/supabase-js@2.57.0";
+import { createClient } from "npm:@supabase/supabase-js@2.119.2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": Deno.env.get("APP_ORIGIN") ?? "https://www.escutamissionaria.com.br",
