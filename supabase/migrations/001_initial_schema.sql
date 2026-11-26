@@ -1,13 +1,13 @@
--- Escuta Missionaria - schema inicial v1.1
--- Revisar antes de executar. Este arquivo NAO cria usuarios nem concede acesso administrativo.
--- Execute somente no projeto Supabase correto (South America - Sao Paulo).
-
+-- Escuta Missionaria - schema inicial v1.2
+-- Revisao de seguranca: provisionamento pendente, RLS, fluxo de relatorios,
+-- consentimento, integridade referencial e auditoria.
+-- IMPORTANTE: ainda requer teste de integracao no projeto Supabase antes de uso.
 begin;
 
 create extension if not exists pgcrypto;
 
 create type public.app_role as enum ('admin', 'missionary');
-create type public.account_status as enum ('active', 'suspended');
+create type public.account_status as enum ('pending', 'active', 'suspended');
 create type public.registration_status as enum ('pending', 'approved', 'rejected');
 create type public.update_status as enum ('draft', 'submitted', 'under_review', 'approved', 'revision_requested');
 create type public.reporting_period_status as enum ('upcoming', 'open', 'closed');
@@ -16,40 +16,33 @@ create type public.consent_type as enum ('public_profile', 'photos', 'updates', 
 create type public.request_status as enum ('open', 'in_progress', 'closed');
 create type public.notification_status as enum ('pending', 'sent', 'failed', 'cancelled');
 
-create or replace function public.set_updated_at()
-returns trigger
-language plpgsql
-set search_path = ''
-as $$
-begin
-  new.updated_at = now();
-  return new;
-end;
-$$;
-
 create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   full_name text not null,
   phone text,
   role public.app_role not null default 'missionary',
-  account_status public.account_status not null default 'active',
+  account_status public.account_status not null default 'pending',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
 create table public.registration_requests (
   id uuid primary key default gen_random_uuid(),
-  full_name text not null,
-  email text not null,
+  full_name text not null check (length(trim(full_name)) between 2 and 160),
+  email text not null check (length(trim(email)) <= 254),
   phone text,
-  ministry_summary text not null,
+  ministry_summary text not null check (length(trim(ministry_summary)) between 10 and 5000),
   years_in_ministry integer,
   status public.registration_status not null default 'pending',
   reviewed_by uuid references public.profiles(id),
   reviewed_at timestamptz,
   decision_note text,
   created_at timestamptz not null default now(),
-  constraint registration_years_nonnegative check (years_in_ministry is null or years_in_ministry >= 0)
+  constraint registration_years_nonnegative check (years_in_ministry is null or years_in_ministry >= 0),
+  constraint registration_review_consistency check (
+    (status = 'pending' and reviewed_by is null and reviewed_at is null)
+    or (status <> 'pending' and reviewed_by is not null and reviewed_at is not null)
+  )
 );
 
 create table public.missionaries (
@@ -68,7 +61,8 @@ create table public.missionaries (
   has_vehicle boolean,
   financial_support_range text,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  constraint missionaries_id_profile_unique unique (id, profile_id)
 );
 
 create table public.organizations (
@@ -108,13 +102,14 @@ create table public.reporting_periods (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint reporting_dates_valid check (period_end >= period_start),
-  constraint reporting_period_unique unique (missionary_id, period_start, period_end)
+  constraint reporting_period_unique unique (missionary_id, period_start, period_end),
+  constraint reporting_id_missionary_unique unique (id, missionary_id)
 );
 
 create table public.missionary_updates (
   id uuid primary key default gen_random_uuid(),
-  reporting_period_id uuid not null unique references public.reporting_periods(id) on delete cascade,
-  missionary_id uuid not null references public.missionaries(id) on delete cascade,
+  reporting_period_id uuid not null unique,
+  missionary_id uuid not null,
   activities text,
   results text,
   challenges text,
@@ -126,7 +121,18 @@ create table public.missionary_updates (
   reviewed_by uuid references public.profiles(id),
   review_note text,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  constraint update_period_owner_fk foreign key (reporting_period_id, missionary_id)
+    references public.reporting_periods(id, missionary_id) on delete cascade,
+  constraint update_review_consistency check (
+    (status in ('draft', 'submitted') and reviewed_by is null and reviewed_at is null)
+    or (status in ('under_review', 'approved', 'revision_requested')
+        and reviewed_by is not null and reviewed_at is not null)
+  ),
+  constraint update_submission_consistency check (
+    (status = 'draft' and submitted_at is null)
+    or (status <> 'draft' and submitted_at is not null)
+  )
 );
 
 create table public.private_requests (
@@ -139,6 +145,7 @@ create table public.private_requests (
   updated_at timestamptz not null default now()
 );
 
+-- Consentimentos sao eventos append-only: para revogar, inserir novo evento granted=false.
 create table public.consents (
   id uuid primary key default gen_random_uuid(),
   missionary_id uuid not null references public.missionaries(id) on delete cascade,
@@ -149,8 +156,8 @@ create table public.consents (
   revoked_at timestamptz,
   created_at timestamptz not null default now(),
   constraint consent_timestamps_valid check (
-    (granted = true and granted_at is not null) or
-    (granted = false and revoked_at is not null)
+    (granted = true and granted_at is not null and revoked_at is null)
+    or (granted = false and granted_at is null and revoked_at is not null)
   )
 );
 
@@ -190,7 +197,6 @@ create table public.audit_logs (
   action text not null,
   entity_type text not null,
   entity_id uuid,
-  metadata jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now()
 );
 
@@ -200,82 +206,213 @@ create index missionary_org_organization_idx on public.missionary_organizations(
 create index reporting_periods_missionary_due_idx on public.reporting_periods(missionary_id, due_date);
 create index updates_missionary_status_idx on public.missionary_updates(missionary_id, status);
 create index private_requests_missionary_idx on public.private_requests(missionary_id);
-create index consents_missionary_type_idx on public.consents(missionary_id, consent_type, granted);
+create index consents_missionary_type_idx on public.consents(missionary_id, consent_type, created_at desc);
 create index notifications_pending_idx on public.notifications(status, scheduled_for);
 create index audit_logs_entity_idx on public.audit_logs(entity_type, entity_id);
 
+create or replace function public.is_admin()
+returns boolean language sql stable security definer set search_path = ''
+as $$
+  select exists (
+    select 1 from public.profiles p
+    where p.id = (select auth.uid())
+      and p.role = 'admin' and p.account_status = 'active'
+  );
+$$;
+
+create or replace function public.current_missionary_id()
+returns uuid language sql stable security definer set search_path = ''
+as $$
+  select m.id
+  from public.missionaries m
+  join public.profiles p on p.id = m.profile_id
+  where m.profile_id = (select auth.uid()) and p.account_status = 'active'
+  limit 1;
+$$;
+
+create or replace function public.has_active_consent(p_missionary_id uuid, p_type public.consent_type)
+returns boolean language sql stable security definer set search_path = ''
+as $$
+  select coalesce((
+    select c.granted and c.revoked_at is null
+    from public.consents c
+    where c.missionary_id = p_missionary_id and c.consent_type = p_type
+    order by c.created_at desc, c.id desc
+    limit 1
+  ), false);
+$$;
+
+revoke all on function public.is_admin() from public;
+revoke all on function public.current_missionary_id() from public;
+revoke all on function public.has_active_consent(uuid, public.consent_type) from public;
+grant execute on function public.is_admin(), public.current_missionary_id(), public.has_active_consent(uuid, public.consent_type) to authenticated, anon;
+
+create or replace function public.set_updated_at()
+returns trigger language plpgsql set search_path = ''
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+create or replace function public.protect_profile_privileges()
+returns trigger language plpgsql security definer set search_path = ''
+as $$
+begin
+  if new.id <> old.id then
+    raise exception 'O identificador do perfil nao pode ser alterado';
+  end if;
+  if (new.role is distinct from old.role or new.account_status is distinct from old.account_status)
+     and auth.uid() is not null and not public.is_admin() then
+    raise exception 'Somente a administracao pode alterar papel ou status da conta';
+  end if;
+  return new;
+end;
+$$;
+
+create or replace function public.protect_reporting_period_update()
+returns trigger language plpgsql security definer set search_path = ''
+as $$
+begin
+  if auth.uid() is not null and not public.is_admin() then
+    if old.missionary_id <> public.current_missionary_id()
+       or new.id is distinct from old.id
+       or new.missionary_id is distinct from old.missionary_id
+       or new.period_start is distinct from old.period_start
+       or new.period_end is distinct from old.period_end
+       or new.due_date is distinct from old.due_date
+       or new.status is distinct from old.status
+       or new.created_at is distinct from old.created_at then
+      raise exception 'Missionario pode alterar somente a justificativa do periodo';
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+create or replace function public.guard_missionary_update()
+returns trigger language plpgsql security definer set search_path = ''
+as $$
+declare
+  v_period_status public.reporting_period_status;
+begin
+  if auth.uid() is not null and not public.is_admin() then
+    if old.missionary_id <> public.current_missionary_id()
+       or new.id is distinct from old.id
+       or new.missionary_id is distinct from old.missionary_id
+       or new.reporting_period_id is distinct from old.reporting_period_id
+       or new.created_at is distinct from old.created_at
+       or old.status not in ('draft', 'revision_requested')
+       or new.status not in ('draft', 'submitted')
+       or new.reviewed_by is not null or new.reviewed_at is not null
+       or new.review_note is not null then
+      raise exception 'Relatorio indisponivel para edicao ou transicao nao permitida';
+    end if;
+    select rp.status into v_period_status
+      from public.reporting_periods rp
+      where rp.id = new.reporting_period_id and rp.missionary_id = new.missionary_id;
+    if new.status = 'submitted' and v_period_status <> 'open' then
+      raise exception 'O periodo de atualizacao nao esta aberto';
+    end if;
+  end if;
+
+  if new.status = 'submitted' and old.status is distinct from 'submitted' then
+    new.submitted_at = now();
+  elsif new.status = 'draft' then
+    new.submitted_at = null;
+  end if;
+  return new;
+end;
+$$;
+
+create or replace function public.validate_publication()
+returns trigger language plpgsql security definer set search_path = ''
+as $$
+begin
+  if new.publication_status = 'published' then
+    if new.approved_by is null or new.approved_at is null
+       or not public.has_active_consent(new.missionary_id, 'public_profile') then
+      raise exception 'Publicacao exige aprovacao administrativa e consentimento vigente';
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+create or replace function public.handle_new_auth_user()
+returns trigger language plpgsql security definer set search_path = ''
+as $$
+declare
+  v_name text;
+begin
+  v_name := coalesce(nullif(trim(new.raw_user_meta_data ->> 'full_name'), ''), new.email);
+  insert into public.profiles (id, full_name, role, account_status)
+  values (new.id, v_name, 'missionary', 'pending')
+  on conflict (id) do nothing;
+
+  insert into public.missionaries (profile_id)
+  values (new.id)
+  on conflict (profile_id) do nothing;
+  return new;
+end;
+$$;
+
+create or replace function public.write_audit_log()
+returns trigger language plpgsql security definer set search_path = ''
+as $$
+declare
+  v_row jsonb;
+  v_id uuid;
+begin
+  if tg_op = 'DELETE' then
+    v_row := to_jsonb(old);
+  else
+    v_row := to_jsonb(new);
+  end if;
+  begin
+    v_id := (v_row ->> 'id')::uuid;
+  exception when others then
+    v_id := null;
+  end;
+  insert into public.audit_logs(actor_id, action, entity_type, entity_id)
+  values (auth.uid(), lower(tg_op), tg_table_name, v_id);
+  if tg_op = 'DELETE' then return old; else return new; end if;
+end;
+$$;
+
+revoke all on function public.handle_new_auth_user() from public;
+revoke all on function public.write_audit_log() from public;
+revoke all on function public.protect_profile_privileges() from public;
+revoke all on function public.protect_reporting_period_update() from public;
+revoke all on function public.guard_missionary_update() from public;
+revoke all on function public.validate_publication() from public;
+
+create trigger on_auth_user_created after insert on auth.users
+for each row execute function public.handle_new_auth_user();
+
 create trigger profiles_updated_at before update on public.profiles
 for each row execute function public.set_updated_at();
+create trigger profiles_privilege_guard before update on public.profiles
+for each row execute function public.protect_profile_privileges();
 create trigger missionaries_updated_at before update on public.missionaries
 for each row execute function public.set_updated_at();
 create trigger organizations_updated_at before update on public.organizations
 for each row execute function public.set_updated_at();
 create trigger reporting_periods_updated_at before update on public.reporting_periods
 for each row execute function public.set_updated_at();
+create trigger reporting_periods_guard before update on public.reporting_periods
+for each row execute function public.protect_reporting_period_update();
 create trigger missionary_updates_updated_at before update on public.missionary_updates
 for each row execute function public.set_updated_at();
+create trigger missionary_updates_guard before update on public.missionary_updates
+for each row execute function public.guard_missionary_update();
 create trigger private_requests_updated_at before update on public.private_requests
 for each row execute function public.set_updated_at();
 create trigger public_profiles_updated_at before update on public.public_profiles
 for each row execute function public.set_updated_at();
-
--- Perfil criado automaticamente quando um usuario e provisionado pelo Supabase Auth.
--- O convite deve ser enviado somente depois da aprovacao administrativa da solicitacao.
-create or replace function public.handle_new_auth_user()
-returns trigger
-language plpgsql
-security definer
-set search_path = ''
-as $$
-begin
-  insert into public.profiles (id, full_name, role, account_status)
-  values (
-    new.id,
-    coalesce(new.raw_user_meta_data ->> 'full_name', new.email),
-    'missionary',
-    'active'
-  )
-  on conflict (id) do nothing;
-  return new;
-end;
-$$;
-
-create trigger on_auth_user_created
-after insert on auth.users
-for each row execute function public.handle_new_auth_user();
-
--- Funcoes auxiliares SECURITY DEFINER evitam recursao das politicas RLS.
-create or replace function public.is_admin()
-returns boolean
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-  select exists (
-    select 1 from public.profiles p
-    where p.id = (select auth.uid())
-      and p.role = 'admin'
-      and p.account_status = 'active'
-  );
-$$;
-
-create or replace function public.current_missionary_id()
-returns uuid
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-  select m.id from public.missionaries m
-  where m.profile_id = (select auth.uid())
-  limit 1;
-$$;
-
-revoke all on function public.is_admin() from public;
-revoke all on function public.current_missionary_id() from public;
-grant execute on function public.is_admin() to authenticated;
-grant execute on function public.current_missionary_id() to authenticated;
+create trigger public_profiles_consent_guard before insert or update on public.public_profiles
+for each row execute function public.validate_publication();
 
 alter table public.profiles enable row level security;
 alter table public.registration_requests enable row level security;
@@ -290,154 +427,127 @@ alter table public.public_profiles enable row level security;
 alter table public.notifications enable row level security;
 alter table public.audit_logs enable row level security;
 
--- Profiles: cada pessoa le o proprio perfil; administrador le todos.
-create policy profiles_select_own_or_admin on public.profiles
-for select to authenticated
+create policy profiles_select_own_or_admin on public.profiles for select to authenticated
 using (id = (select auth.uid()) or (select public.is_admin()));
-
-create policy profiles_update_own_or_admin on public.profiles
-for update to authenticated
+create policy profiles_update_own_or_admin on public.profiles for update to authenticated
 using (id = (select auth.uid()) or (select public.is_admin()))
-with check (
-  (id = (select auth.uid()) and role = 'missionary' and account_status = 'active')
-  or (select public.is_admin())
-);
+with check (id = (select auth.uid()) or (select public.is_admin()));
 
--- Solicitacoes: formulario publico pode inserir; somente admin consulta/decide.
-create policy registration_public_insert on public.registration_requests
-for insert to anon, authenticated
-with check (status = 'pending' and reviewed_by is null and reviewed_at is null);
-create policy registration_admin_all on public.registration_requests
-for all to authenticated
-using ((select public.is_admin()))
-with check ((select public.is_admin()));
+-- Solicitacoes publicas entram por Edge Function com validacao anti-spam.
+-- Nao ha INSERT anonimo direto nesta tabela.
+create policy registration_admin_all on public.registration_requests for all to authenticated
+using ((select public.is_admin())) with check ((select public.is_admin()));
 
-create policy missionaries_select_own_or_admin on public.missionaries
-for select to authenticated
+create policy missionaries_select_own_or_admin on public.missionaries for select to authenticated
 using (profile_id = (select auth.uid()) or (select public.is_admin()));
-create policy missionaries_insert_admin on public.missionaries
-for insert to authenticated with check ((select public.is_admin()));
-create policy missionaries_update_own_or_admin on public.missionaries
-for update to authenticated
+create policy missionaries_update_own_or_admin on public.missionaries for update to authenticated
 using (profile_id = (select auth.uid()) or (select public.is_admin()))
 with check (profile_id = (select auth.uid()) or (select public.is_admin()));
-
-create policy organizations_admin_all on public.organizations
-for all to authenticated
-using ((select public.is_admin()))
+create policy missionaries_insert_admin on public.missionaries for insert to authenticated
 with check ((select public.is_admin()));
-create policy organizations_missionary_read_linked on public.organizations
-for select to authenticated
+
+create policy organizations_admin_all on public.organizations for all to authenticated
+using ((select public.is_admin())) with check ((select public.is_admin()));
+create policy organizations_missionary_read_linked on public.organizations for select to authenticated
 using (exists (
   select 1 from public.missionary_organizations mo
-  join public.missionaries m on m.id = mo.missionary_id
-  where mo.organization_id = organizations.id and m.profile_id = (select auth.uid())
+  where mo.organization_id = organizations.id
+    and mo.missionary_id = (select public.current_missionary_id())
 ));
 
-create policy missionary_organizations_admin_all on public.missionary_organizations
-for all to authenticated
-using ((select public.is_admin()))
-with check ((select public.is_admin()));
-create policy missionary_organizations_read_own on public.missionary_organizations
-for select to authenticated
+create policy missionary_organizations_admin_all on public.missionary_organizations for all to authenticated
+using ((select public.is_admin())) with check ((select public.is_admin()));
+create policy missionary_organizations_read_own on public.missionary_organizations for select to authenticated
 using (missionary_id = (select public.current_missionary_id()));
 
-create policy reporting_periods_admin_all on public.reporting_periods
-for all to authenticated
-using ((select public.is_admin()))
-with check ((select public.is_admin()));
-create policy reporting_periods_read_own on public.reporting_periods
-for select to authenticated
+create policy reporting_periods_admin_all on public.reporting_periods for all to authenticated
+using ((select public.is_admin())) with check ((select public.is_admin()));
+create policy reporting_periods_read_own on public.reporting_periods for select to authenticated
 using (missionary_id = (select public.current_missionary_id()));
+create policy reporting_periods_update_own_justification on public.reporting_periods for update to authenticated
+using (missionary_id = (select public.current_missionary_id()))
+with check (missionary_id = (select public.current_missionary_id()));
 
-create policy updates_admin_all on public.missionary_updates
-for all to authenticated
-using ((select public.is_admin()))
-with check ((select public.is_admin()));
-create policy updates_read_own on public.missionary_updates
-for select to authenticated
+create policy updates_admin_all on public.missionary_updates for all to authenticated
+using ((select public.is_admin())) with check ((select public.is_admin()));
+create policy updates_read_own on public.missionary_updates for select to authenticated
 using (missionary_id = (select public.current_missionary_id()));
-create policy updates_insert_own_draft on public.missionary_updates
-for insert to authenticated
+create policy updates_insert_own_draft on public.missionary_updates for insert to authenticated
 with check (
   missionary_id = (select public.current_missionary_id())
-  and status = 'draft'
-  and reviewed_by is null
-  and reviewed_at is null
+  and status = 'draft' and submitted_at is null
+  and reviewed_by is null and reviewed_at is null
 );
-create policy updates_update_own_draft on public.missionary_updates
-for update to authenticated
+create policy updates_update_own_draft on public.missionary_updates for update to authenticated
 using (missionary_id = (select public.current_missionary_id()) and status in ('draft', 'revision_requested'))
 with check (
   missionary_id = (select public.current_missionary_id())
   and status in ('draft', 'submitted')
-  and reviewed_by is null
-  and reviewed_at is null
+  and reviewed_by is null and reviewed_at is null and review_note is null
 );
 
-create policy private_requests_admin_all on public.private_requests
-for all to authenticated
-using ((select public.is_admin()))
-with check ((select public.is_admin()));
-create policy private_requests_own_all on public.private_requests
-for all to authenticated
+create policy private_requests_admin_all on public.private_requests for all to authenticated
+using ((select public.is_admin())) with check ((select public.is_admin()));
+create policy private_requests_own_all on public.private_requests for all to authenticated
 using (missionary_id = (select public.current_missionary_id()))
 with check (missionary_id = (select public.current_missionary_id()));
 
-create policy consents_admin_all on public.consents
-for all to authenticated
-using ((select public.is_admin()))
-with check ((select public.is_admin()));
-create policy consents_read_own on public.consents
-for select to authenticated
+create policy consents_admin_read on public.consents for select to authenticated
+using ((select public.is_admin()));
+create policy consents_read_own on public.consents for select to authenticated
 using (missionary_id = (select public.current_missionary_id()));
-create policy consents_insert_own on public.consents
-for insert to authenticated
+create policy consents_insert_own on public.consents for insert to authenticated
 with check (missionary_id = (select public.current_missionary_id()));
 
-create policy public_profiles_public_read on public.public_profiles
-for select to anon, authenticated
+create policy public_profiles_public_read on public.public_profiles for select to anon, authenticated
 using (
   publication_status = 'published'
-  and exists (
-    select 1 from public.consents c
-    where c.missionary_id = public_profiles.missionary_id
-      and c.consent_type = 'public_profile'
-      and c.granted = true
-      and c.revoked_at is null
-  )
+  and public.has_active_consent(missionary_id, 'public_profile')
 );
-create policy public_profiles_admin_all on public.public_profiles
-for all to authenticated
-using ((select public.is_admin()))
-with check ((select public.is_admin()));
-create policy public_profiles_missionary_read_own on public.public_profiles
-for select to authenticated
+create policy public_profiles_admin_all on public.public_profiles for all to authenticated
+using ((select public.is_admin())) with check ((select public.is_admin()));
+create policy public_profiles_missionary_read_own on public.public_profiles for select to authenticated
 using (missionary_id = (select public.current_missionary_id()));
 
-create policy notifications_admin_all on public.notifications
-for all to authenticated
-using ((select public.is_admin()))
-with check ((select public.is_admin()));
-create policy notifications_read_own on public.notifications
-for select to authenticated
+create policy notifications_admin_all on public.notifications for all to authenticated
+using ((select public.is_admin())) with check ((select public.is_admin()));
+create policy notifications_read_own on public.notifications for select to authenticated
 using (profile_id = (select auth.uid()));
 
-create policy audit_logs_admin_read on public.audit_logs
-for select to authenticated
+create policy audit_logs_admin_read on public.audit_logs for select to authenticated
 using ((select public.is_admin()));
 
--- Privilegios SQL explicitos: RLS continua sendo a camada de autorizacao por linha.
+-- Auditoria registra operacoes, sem copiar conteudo sensivel dos registros.
+create trigger audit_profiles after insert or update or delete on public.profiles
+for each row execute function public.write_audit_log();
+create trigger audit_registration after insert or update or delete on public.registration_requests
+for each row execute function public.write_audit_log();
+create trigger audit_missionaries after insert or update or delete on public.missionaries
+for each row execute function public.write_audit_log();
+create trigger audit_organizations after insert or update or delete on public.organizations
+for each row execute function public.write_audit_log();
+create trigger audit_missionary_organizations after insert or update or delete on public.missionary_organizations
+for each row execute function public.write_audit_log();
+create trigger audit_reporting_periods after insert or update or delete on public.reporting_periods
+for each row execute function public.write_audit_log();
+create trigger audit_missionary_updates after insert or update or delete on public.missionary_updates
+for each row execute function public.write_audit_log();
+create trigger audit_private_requests after insert or update or delete on public.private_requests
+for each row execute function public.write_audit_log();
+create trigger audit_consents after insert or update or delete on public.consents
+for each row execute function public.write_audit_log();
+create trigger audit_public_profiles after insert or update or delete on public.public_profiles
+for each row execute function public.write_audit_log();
+
 grant usage on schema public to anon, authenticated;
-grant select, insert on public.registration_requests to anon, authenticated;
-grant select, insert, update on public.profiles to authenticated;
+grant select, update on public.profiles to authenticated;
 grant select, insert, update on public.missionaries to authenticated;
 grant select, insert, update, delete on public.organizations to authenticated;
 grant select, insert, update, delete on public.missionary_organizations to authenticated;
 grant select, insert, update, delete on public.reporting_periods to authenticated;
 grant select, insert, update, delete on public.missionary_updates to authenticated;
 grant select, insert, update, delete on public.private_requests to authenticated;
-grant select, insert, update, delete on public.consents to authenticated;
+grant select, insert on public.consents to authenticated;
 grant select, insert, update, delete on public.public_profiles to authenticated;
 grant select, insert, update, delete on public.notifications to authenticated;
 grant select on public.audit_logs to authenticated;
@@ -445,11 +555,12 @@ grant select on public.public_profiles to anon;
 
 commit;
 
--- IMPORTANTE - ETAPAS MANUAIS AINDA NECESSARIAS:
--- 1. Configurar Auth para convite apenas; nao habilitar cadastro publico de contas.
--- 2. Revisar protecao anti-spam/rate limit do formulario de solicitacao.
--- 3. Criar o primeiro usuario administrador e promover seu profile.role por SQL
---    executado pelo proprietario do projeto, apos conferir o UUID correto.
--- 4. Testar cada politica RLS com contas de administrador, missionario e visitante.
--- 5. Completar auditoria por triggers/funcoes antes de considerar o sistema pronto.
--- 6. Configurar Storage privado e politicas proprias antes de aceitar uploads.
+-- Operacao ainda necessaria antes do lancamento:
+-- 1) Desabilitar cadastro publico no Supabase Auth; contas somente por convite administrativo.
+-- 2) Aprovacao da solicitacao deve ocorrer no backend confiavel; somente depois emitir convite.
+-- 3) A conta nasce PENDING. Admin confere identidade/solicitacao e ativa o perfil.
+-- 4) Criar o primeiro admin manualmente no SQL Editor, apos conferir o UUID do Auth.
+-- 5) Formulario publico de solicitacao deve usar Edge Function com CAPTCHA/rate limit.
+-- 6) Configurar bucket privado e politicas Storage separadas antes de aceitar arquivos.
+-- 7) Testar RLS com usuarios distintos (anon, missionario A, missionario B, admin).
+-- 8) Nao usar service_role no navegador; manter secrets somente no backend.
