@@ -47,9 +47,57 @@ Deno.serve(async (req) => {
     const captchaResult = await captchaResponse.json();
     if (!captchaResult.success) return reply(400, { error: "Verificacao de seguranca invalida. Tente novamente." });
 
+    const rateSalt = Deno.env.get("RATE_LIMIT_SALT");
+    if (!rateSalt) {
+      console.error("Segredo de rate limit ausente.");
+      return reply(503, { error: "Formulario temporariamente indisponivel." });
+    }
+
+    const digest = async (value: string) => {
+      const bytes = new TextEncoder().encode(`${rateSalt}:${value}`);
+      const hash = await crypto.subtle.digest("SHA-256", bytes);
+      return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, "0")).join("");
+    };
+
+    const ip = req.headers.get("cf-connecting-ip")
+      ?? req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+      ?? "";
+    const ipHash = ip ? await digest(ip) : null;
+    const emailHash = await digest(email);
+
     const admin = createClient(supabaseUrl, serviceKey, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
+
+    const { error: attemptError } = await admin.from("registration_attempts").insert({
+      ip_hash: ipHash,
+      email_hash: emailHash,
+    });
+    if (attemptError) {
+      console.error("Falha ao registrar tentativa de cadastro:", attemptError.code);
+      return reply(503, { error: "Formulario temporariamente indisponivel." });
+    }
+
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const [{ count: emailAttempts }, { count: ipAttempts }] = await Promise.all([
+      admin.from("registration_attempts").select("id", { count: "exact", head: true })
+        .eq("email_hash", emailHash).gte("created_at", since),
+      ipHash
+        ? admin.from("registration_attempts").select("id", { count: "exact", head: true })
+            .eq("ip_hash", ipHash).gte("created_at", since)
+        : Promise.resolve({ count: 0, error: null }),
+    ]);
+
+    if ((emailAttempts ?? 0) > 2 || (ipAttempts ?? 0) > 5) {
+      return reply(429, { error: "Limite de solicitacoes atingido. Tente novamente mais tarde." });
+    }
+
+    // Limpeza oportunista de hashes antigos; nenhum IP ou e-mail puro e armazenado.
+    if (Math.random() < 0.02) {
+      await admin.from("registration_attempts").delete()
+        .lt("created_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+    }
+
     const { error } = await admin.from("registration_requests").insert({
       full_name, email, phone, ministry_summary, years_in_ministry: years,
     });
