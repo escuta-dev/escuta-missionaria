@@ -3,7 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
+import { getSupabase } from "@/lib/supabase";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -16,7 +16,7 @@ export default function LoginPage() {
     event.preventDefault();
     setBusy(true);
     setMessage("");
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await getSupabase().auth.signInWithPassword({ email, password });
     setBusy(false);
     if (error) {
       setMessage("Não foi possível entrar. Confira o e-mail e a senha.");
@@ -31,7 +31,7 @@ export default function LoginPage() {
       return;
     }
     setBusy(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    const { error } = await getSupabase().auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/definir-acesso?mode=recovery`,
     });
     setBusy(false);
