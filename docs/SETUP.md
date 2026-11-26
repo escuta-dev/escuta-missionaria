@@ -69,8 +69,23 @@ Nao compartilhe senha, chave secreta ou token com colaboradores. A conta adminis
 ## 6. Estado atual / limites
 
 - O banco de staging esta criado e sem dados reais.
-- As migrations 001 a 009 foram aplicadas.
+- As migrations 001 a 011 foram aplicadas.
 - As Edge Functions `submit-registration` e `approve-registration` estao publicadas.
-- A interface publica inicial esta no repositorio, mas ainda nao esta publicada na Vercel.
-- O formulario nao recebe solicitacoes ate configurar Turnstile, `RATE_LIMIT_SALT` e `APP_ORIGIN`.
-- O painel administrativo, login, aceite de convite e recuperacao de acesso ainda serao implementados.
+- A interface publica e a area restrita estao no repositorio, mas ainda nao foram publicadas na Vercel.
+- O formulario nao recebe solicitacoes ate configurar Turnstile, `RATE_LIMIT_SALT`, `APP_ORIGIN` e as variaveis publicas da Vercel.
+- O painel inicial, login, aceite de convite e recuperacao de acesso ja estao no repositorio. O fluxo de aprovacao/rejeicao usa a Edge Function protegida por JWT e verificacao de administrador.
+
+
+## 7. Publicacao de homologacao
+
+A conexao da Vercel ainda nao foi concluida. Quando a integracao estiver conectada:
+
+1. Importar o repositorio `escuta-dev/escuta-missionaria`.
+2. Manter o framework Next.js e a branch de producao `main`.
+3. Adicionar as quatro variaveis publicas listadas na secao 3.
+4. Fazer deploy de Preview primeiro; nao divulgar o endereco.
+5. Configurar o endereco Preview exato em `APP_ORIGIN` no Supabase e autorizar o redirect correspondente em Authentication > URL Configuration.
+6. Testar login, recuperacao de senha, solicitacao de cadastro, aprovacao e rejeicao.
+7. Somente apos os testes, adicionar o dominio definitivo e configurar DNS.
+
+Nao cadastrar missionarios reais nem abrir a participacao publica durante a homologacao.
