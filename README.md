@@ -21,11 +21,11 @@ Plataforma independente de escuta, acompanhamento, conexao e apoio a missionario
 ## Estado tecnico
 
 - Banco Supabase de staging em Sao Paulo (`sa-east-1`).
-- Migrations 001 a 010 aplicadas.
+- Migrations 001 a 011 aplicadas.
 - 13 tabelas publicas com RLS habilitado.
 - Funcoes privilegiadas isoladas no esquema `private`.
 - Testes iniciais de isolamento entre missionarios, visibilidade publica e protecao de privilegios aprovados.
-- Edge Functions `submit-registration` e `approve-registration` publicadas.
+- Edge Functions `submit-registration` e `approve-registration` publicadas; aprovacao e rejeicao protegidas por verificacao de administrador.
 - Formulario publico inicial, login, aceite de convite, painel inicial de administracao e rascunho do Aviso de Privacidade criados no Next.js.
 - Sem dados reais de missionarios neste ambiente.
 
