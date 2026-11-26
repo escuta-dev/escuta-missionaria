@@ -18,6 +18,7 @@ Ambiente de staging: projeto Supabase **Escuta Missionaria**, regiao Sao Paulo (
 - Teste RLS temporario A/B: aprovado; cada missionario visualizou somente seu proprio perfil, cadastro de missionario, pedido privado e periodo de relatorio. Registros de teste foram revertidos com `ROLLBACK`.
 - Teste de escalacao de privilegio: aprovado; missionario nao conseguiu alterar o proprio papel para admin.
 - Teste de submissao de perfil: aprovado; missionario conseguiu enviar perfil como `pending_review`, mas nao conseguiu publica-lo nem atribuir aprovacao administrativa.
+- Teste de trigger de atualizacao: aprovado; missionario autenticado conseguiu atualizar seu proprio cadastro e o trigger de `updated_at` executou corretamente.
 - Teste de permissoes SQL: aprovado; `anon` nao possui leitura de tabelas privadas nem privilegios de `TRUNCATE`; `authenticated` e `service_role` tambem nao possuem `TRUNCATE` nas tabelas publicas.
 - Teste de consulta publica: aprovado; visitante anonimo visualizou somente perfil publicado com consentimento vigente; perfil em rascunho nao apareceu. Registros de teste foram revertidos.
 - Teste de sintaxe e aplicacao das migrations: aprovado pelo Supabase.
