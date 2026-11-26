@@ -42,6 +42,7 @@ Deno.serve(async (req) => {
 
     const body = await req.json();
     const requestId = String(body.request_id ?? "");
+    const action = body.action === "reject" ? "reject" : "approve";
     const decisionNote = String(body.decision_note ?? "").trim().slice(0, 2000);
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestId)) {
       return reply(400, { error: "Solicitacao invalida." });
@@ -53,6 +54,24 @@ Deno.serve(async (req) => {
       .eq("id", requestId).maybeSingle();
     if (requestError || !request) return reply(404, { error: "Solicitacao nao encontrada." });
     if (request.status !== "pending") return reply(409, { error: "Esta solicitacao ja foi analisada." });
+
+    if (action === "reject") {
+      const { data: rejected, error: rejectError } = await admin
+        .from("registration_requests")
+        .update({
+          status: "rejected",
+          reviewed_by: userData.user.id,
+          reviewed_at: new Date().toISOString(),
+          decision_note: decisionNote || "Solicitacao nao aprovada apos analise administrativa.",
+        })
+        .eq("id", request.id).eq("status", "pending")
+        .select("id").maybeSingle();
+      if (rejectError || !rejected) {
+        console.error("Falha ao rejeitar solicitacao:", rejectError?.code);
+        return reply(409, { error: "Nao foi possivel concluir a analise. Atualize a fila e tente novamente." });
+      }
+      return reply(200, { message: "Solicitacao rejeitada." });
+    }
 
     const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(request.email, {
       data: { full_name: request.full_name, registration_request_id: request.id },
