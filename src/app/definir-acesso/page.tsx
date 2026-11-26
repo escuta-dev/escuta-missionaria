@@ -1,13 +1,13 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 export default function SetAccessPage() {
   const router = useRouter();
-  const params = useSearchParams();
+  const [recovery, setRecovery] = useState(false);
   const [ready, setReady] = useState(false);
   const [hasSession, setHasSession] = useState(false);
   const [password, setPassword] = useState("");
@@ -16,6 +16,7 @@ export default function SetAccessPage() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
+    setRecovery(new URLSearchParams(window.location.search).get("mode") === "recovery");
     let active = true;
     supabase.auth.getSession().then(({ data }) => {
       if (!active) return;
@@ -46,7 +47,6 @@ export default function SetAccessPage() {
     router.replace("/admin");
   }
 
-  const recovery = params.get("mode") === "recovery";
 
   return (
     <main className="auth-shell">
