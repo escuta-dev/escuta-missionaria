@@ -107,7 +107,7 @@ export default function Home() {
           <span className="brand-mark">E</span>
           <span>ESCUTA MISSIONÁRIA</span>
         </div>
-        <a className="top-link" href="#solicitar-acesso">Solicitar participação</a>
+        <nav style={{ display: "flex", alignItems: "center", gap: 20 }}><a className="top-link" href="#solicitar-acesso">Solicitar participação</a><a className="top-link" href="/login">Acesso restrito</a></nav>
       </header>
 
       <section className="hero">
