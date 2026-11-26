@@ -24,11 +24,13 @@ Deno.serve(async (req) => {
     const years = body.years_in_ministry === "" || body.years_in_ministry == null
       ? null : Number(body.years_in_ministry);
     const captchaToken = String(body.captcha_token ?? "");
+    const privacyAccepted = body.privacy_accepted === true;
 
     if (full_name.length < 2 || full_name.length > 160) return reply(400, { error: "Informe seu nome completo." });
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) return reply(400, { error: "Informe um e-mail valido." });
     if (ministry_summary.length < 10 || ministry_summary.length > 5000) return reply(400, { error: "Descreva sua atuacao missionaria (10 a 5.000 caracteres)." });
     if (years !== null && (!Number.isInteger(years) || years < 0 || years > 80)) return reply(400, { error: "Informe corretamente os anos de atuacao." });
+    if (!privacyAccepted) return reply(400, { error: "E necessario aceitar o Aviso de Privacidade." });
     if (!captchaToken) return reply(400, { error: "Confirme a verificacao de seguranca." });
 
     const turnstileSecret = Deno.env.get("TURNSTILE_SECRET_KEY");
@@ -104,6 +106,8 @@ Deno.serve(async (req) => {
 
     const { error } = await admin.from("registration_requests").insert({
       full_name, email, phone, ministry_summary, years_in_ministry: years,
+      privacy_notice_version: "draft-1.0",
+      privacy_accepted_at: new Date().toISOString(),
     });
 
     if (error) {
