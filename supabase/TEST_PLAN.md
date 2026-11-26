@@ -17,7 +17,8 @@ Ambiente de staging: projeto Supabase **Escuta Missionaria**, regiao Sao Paulo (
 - Teste de submissao de perfil: aprovado; missionario enviou perfil para revisao, sem poder aprovar ou publicar a si mesmo.
 - Teste de trigger de atualizacao: aprovado.
 - Edge Functions `submit-registration` (JWT desativado por ser formulario publico, com Turnstile obrigatorio) e `approve-registration` (JWT obrigatorio e verificacao de administrador ativo) publicadas.
-- Formulario publico, login, aceite de convite, painel administrativo inicial e rascunho do Aviso de Privacidade criados em Next.js; build automatizado em validacao.
+- Formulario publico, login, aceite de convite, painel administrativo inicial e rascunho do Aviso de Privacidade criados em Next.js.
+- Build de producao aprovado no GitHub Actions com Next.js 16.4.6, React 19.3.1 e Supabase JS 2.119.2.
 - Aceite expresso do Aviso de Privacidade registrado no banco com versao e data; aviso permanece preliminar e bloqueia abertura publica ate revisao.
 - Testes end-to-end de convite por e-mail, login, recuperacao de acesso e painel administrativo: pendentes.
 - Segredos `TURNSTILE_SECRET_KEY`, `RATE_LIMIT_SALT`, `APP_ORIGIN` e `INVITE_REDIRECT_URL` ainda precisam ser configurados no painel Supabase.
