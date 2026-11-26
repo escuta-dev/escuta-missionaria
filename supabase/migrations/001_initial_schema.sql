@@ -243,13 +243,6 @@ as $$
   ), false);
 $$;
 
-revoke all on function public.is_admin() from public;
-revoke all on function public.current_missionary_id() from public;
-revoke all on function public.has_active_consent(uuid, public.consent_type) from public;
-revoke all on function public.is_missionary_active(uuid) from public;
-grant execute on function public.is_admin(), public.current_missionary_id(), public.has_active_consent(uuid, public.consent_type), public.is_missionary_active(uuid) to authenticated, anon;
-
-
 create or replace function public.is_missionary_active(p_missionary_id uuid)
 returns boolean language sql stable security definer set search_path = ''
 as $
