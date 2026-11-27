@@ -1,0 +1,3 @@
+create index if not exists missionary_update_attachments_missionary_id_idx on public.missionary_update_attachments(missionary_id);
+create index if not exists missionary_update_attachments_update_id_idx on public.missionary_update_attachments(update_id);
+create index if not exists missionary_update_attachments_uploaded_by_idx on public.missionary_update_attachments(uploaded_by);

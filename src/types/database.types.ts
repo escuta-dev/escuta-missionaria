@@ -207,6 +207,12 @@ export type Database = {
         Row: {
           activities: string | null
           challenges: string | null
+          community_relationship: string | null
+          people_reached: number | null
+          testimony: string | null
+          support_situation: string | null
+          urgent_needs: string | null
+          support_needed: string | null
           created_at: string
           id: string
           missionary_id: string
@@ -224,6 +230,12 @@ export type Database = {
         Insert: {
           activities?: string | null
           challenges?: string | null
+          community_relationship?: string | null
+          people_reached?: number | null
+          testimony?: string | null
+          support_situation?: string | null
+          urgent_needs?: string | null
+          support_needed?: string | null
           created_at?: string
           id?: string
           missionary_id: string
@@ -241,6 +253,12 @@ export type Database = {
         Update: {
           activities?: string | null
           challenges?: string | null
+          community_relationship?: string | null
+          people_reached?: number | null
+          testimony?: string | null
+          support_situation?: string | null
+          urgent_needs?: string | null
+          support_needed?: string | null
           created_at?: string
           id?: string
           missionary_id?: string
@@ -609,7 +627,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      ensure_reporting_periods: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
     }
     Enums: {
       account_status: "pending" | "active" | "suspended"

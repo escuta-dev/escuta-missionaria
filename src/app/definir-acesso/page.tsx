@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { getAuthenticatedDestination } from "@/lib/auth-routing";
 import { getSupabase } from "@/lib/supabase";
 
 export default function SetAccessPage() {
@@ -37,16 +38,25 @@ export default function SetAccessPage() {
       setMessage("As senhas não coincidem.");
       return;
     }
+
     setBusy(true);
     const { error } = await getSupabase().auth.updateUser({ password });
-    setBusy(false);
     if (error) {
+      setBusy(false);
       setMessage("Não foi possível definir a senha. Solicite um novo convite ou recuperação.");
       return;
     }
-    router.replace("/admin");
-  }
 
+    const destination = await getAuthenticatedDestination();
+    setBusy(false);
+
+    if (!destination.path) {
+      setMessage(destination.error ?? "Senha atualizada, mas não foi possível validar seu perfil. Entre em contato com a administração.");
+      return;
+    }
+
+    router.replace(destination.path);
+  }
 
   return (
     <main className="auth-shell">

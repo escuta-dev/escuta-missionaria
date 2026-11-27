@@ -14,7 +14,7 @@
 * { box-sizing: border-box; }
 html { min-height: 100%; background: var(--off-white); }
 body { margin: 0; color: var(--ink); font-family: "DM Sans", Arial, sans-serif; background: var(--off-white); }
-button, input, textarea { font: inherit; }
+button, input, textarea, select { font: inherit; }
 a { color: inherit; }
 .page-shell { min-height: 100vh; }
 .topbar { height: 76px; display: flex; align-items: center; justify-content: space-between; max-width: 1160px; margin: 0 auto; padding: 0 28px; }
@@ -35,8 +35,8 @@ a { color: inherit; }
 .field { display: flex; flex-direction: column; gap: 7px; }
 .field.full { grid-column: 1 / -1; }
 .field label { color: var(--blue-deep); font-weight: 600; font-size: 13px; }
-.field input, .field textarea { width: 100%; border: 1px solid #dce2e5; border-radius: 8px; background: #fff; color: var(--ink); padding: 12px 13px; outline: none; transition: border .15s, box-shadow .15s; }
-.field input:focus, .field textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(66,107,131,.12); }
+.field input, .field textarea, .field select { width: 100%; border: 1px solid #dce2e5; border-radius: 8px; background: #fff; color: var(--ink); padding: 12px 13px; outline: none; transition: border .15s, box-shadow .15s; }
+.field input:focus, .field textarea:focus, .field select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(66,107,131,.12); }
 .field textarea { min-height: 126px; resize: vertical; line-height: 1.6; }
 .hint { color: var(--muted); font-size: 11px; line-height: 1.5; }
 .turnstile-slot { min-height: 66px; display: flex; align-items: center; }
@@ -110,3 +110,51 @@ a { color: inherit; }
 .privacy-card p { color: var(--muted); font-size: 14px; line-height: 1.8; }
 .privacy-footnote { border-top: 1px solid var(--line); padding-top: 18px; margin-top: 30px; font-size: 12px !important; }
 @media (max-width: 600px) { .privacy-card { padding: 28px 22px; } .privacy-card h1 { font-size: 32px; } }
+
+
+.report-layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:18px;align-items:start;margin-top:24px}
+.report-period-list,.report-form-card{background:white;border:1px solid #e3e7e8;border-radius:12px;padding:22px}
+.report-period-list h2,.report-form-heading h2{margin:0 0 12px;color:var(--blue-deep);font:600 23px "Playfair Display",Georgia,serif}
+.report-period-button{display:flex;flex-direction:column;align-items:flex-start;gap:5px;width:100%;padding:13px;margin-top:8px;text-align:left;border:1px solid #e3e7e8;border-radius:8px;background:#fff;color:var(--ink);cursor:pointer}
+.report-period-button.selected{border-color:var(--blue);background:#f2f6f8}
+.report-period-button span,.report-period-button small{font-size:11px;color:var(--muted);line-height:1.5}
+.report-period-button small{color:#8a5b32}
+.report-form-heading{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:22px}
+.report-form-heading h2{margin:7px 0}
+.report-form-heading p{margin:0;color:var(--muted);font-size:12px}
+.report-status{font-size:11px;color:var(--blue-deep);background:#eef3f5;border-radius:20px;padding:7px 10px;white-space:nowrap}
+.report-fields{margin-top:0}
+.report-fields textarea{min-height:100px}
+.report-actions{justify-content:flex-end}
+@media(max-width:800px){.report-layout{grid-template-columns:1fr}.report-period-list{display:grid;grid-template-columns:1fr 1fr;gap:6px}.report-period-list h2{grid-column:1/-1}.report-period-button{margin:0}.report-form-heading{flex-direction:column}}
+@media(max-width:520px){.report-period-list{grid-template-columns:1fr}.report-actions{flex-direction:column}.report-actions button{width:100%}}
+
+
+.admin-report-content{display:grid;gap:13px;margin-top:20px}
+.admin-report-content>div{border-top:1px solid var(--line);padding-top:10px}
+.admin-report-content strong{display:block;color:var(--blue-deep);font-size:12px;margin-bottom:5px}
+.admin-report-content p{margin:0;color:var(--ink);font-size:13px;line-height:1.7;white-space:pre-wrap}
+.admin-review{margin-top:20px;border-top:1px solid var(--line);padding-top:18px}
+.admin-review label{display:block;color:var(--blue-deep);font-size:13px;font-weight:600;margin-bottom:8px}
+.admin-review textarea{width:100%;min-height:90px;border:1px solid #dce2e5;border-radius:8px;padding:12px;color:var(--ink);resize:vertical}
+.admin-review .request-actions{flex-wrap:wrap}
+
+.admin-report-details{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
+.admin-report-details>summary{display:flex;align-items:center;gap:9px;width:fit-content;color:var(--blue);font-size:13px;font-weight:700;cursor:pointer;list-style:none;user-select:none}
+.admin-report-details>summary::-webkit-details-marker{display:none}
+.admin-report-details>summary::before{content:"+";display:grid;place-items:center;width:22px;height:22px;border:1px solid #cbd8de;border-radius:50%;font-size:16px;line-height:1}
+.admin-report-details[open]>summary::before{content:"−"}
+.admin-report-details[open]>.admin-report-content{margin-top:18px}
+
+.report-attachments{margin-top:24px;padding:18px;border:1px solid var(--line);border-radius:10px;background:#fbfcfc}
+.report-attachments h3{margin:0 0 7px;color:var(--blue-deep);font:600 19px "Playfair Display",Georgia,serif}
+.attachment-list{list-style:none;padding:0;margin:12px 0;display:grid;gap:8px}
+.attachment-list li{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 12px;background:#fff;border:1px solid var(--line);border-radius:8px}
+.attachment-list li>span{display:flex;flex-direction:column;gap:3px;min-width:0}
+.attachment-list strong{font-size:12px;color:var(--blue-deep);overflow-wrap:anywhere}
+.attachment-list small{font-size:11px;color:var(--muted)}
+.attachment-actions{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.attachment-upload{display:inline-flex;align-items:center;justify-content:center;margin-top:10px;padding:11px 15px;border:1px solid #cbd8de;border-radius:8px;color:var(--blue);font-size:13px;font-weight:700;cursor:pointer;background:#fff}
+.attachment-upload input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.attachment-upload:has(input:disabled){opacity:.5;cursor:not-allowed}
+@media(max-width:520px){.attachment-list li{align-items:flex-start;flex-direction:column}.attachment-actions{width:100%;justify-content:flex-start}}
