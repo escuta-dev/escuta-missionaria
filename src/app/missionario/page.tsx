@@ -74,12 +74,24 @@ export default function MissionaryPage() {
               Seu acesso à Escuta Missionária está ativo. Este será seu espaço para acompanhar
               seu cadastro e compartilhar atualizações do trabalho missionário.
             </p>
-            <div className="empty-state">
-              <h2>Estamos preparando sua área</h2>
-              <p>
-                O acesso já está funcionando. Nas próximas etapas, vamos disponibilizar
-                a consulta e atualização do perfil missionário e o envio dos relatórios trimestrais.
-              </p>
+            <div className="request-list">
+              <article className="request-card">
+                <div className="request-top">
+                  <div>
+                    <h2>Meu perfil</h2>
+                    <p className="request-date">Consulte e mantenha seus dados pessoais e missionários atualizados.</p>
+                  </div>
+                </div>
+                <div className="request-actions">
+                  <a className="submit-button" href="/missionario/perfil" style={{ display: "inline-block", width: "auto", textDecoration: "none" }}>
+                    Acessar meu perfil
+                  </a>
+                </div>
+              </article>
+              <div className="empty-state">
+                <h2>Relatórios trimestrais</h2>
+                <p>Esta funcionalidade será disponibilizada em uma próxima etapa.</p>
+              </div>
             </div>
           </>
         )}
