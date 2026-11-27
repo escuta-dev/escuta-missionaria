@@ -110,3 +110,21 @@ a { color: inherit; }
 .privacy-card p { color: var(--muted); font-size: 14px; line-height: 1.8; }
 .privacy-footnote { border-top: 1px solid var(--line); padding-top: 18px; margin-top: 30px; font-size: 12px !important; }
 @media (max-width: 600px) { .privacy-card { padding: 28px 22px; } .privacy-card h1 { font-size: 32px; } }
+
+
+.report-layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:18px;align-items:start;margin-top:24px}
+.report-period-list,.report-form-card{background:white;border:1px solid #e3e7e8;border-radius:12px;padding:22px}
+.report-period-list h2,.report-form-heading h2{margin:0 0 12px;color:var(--blue-deep);font:600 23px "Playfair Display",Georgia,serif}
+.report-period-button{display:flex;flex-direction:column;align-items:flex-start;gap:5px;width:100%;padding:13px;margin-top:8px;text-align:left;border:1px solid #e3e7e8;border-radius:8px;background:#fff;color:var(--ink);cursor:pointer}
+.report-period-button.selected{border-color:var(--blue);background:#f2f6f8}
+.report-period-button span,.report-period-button small{font-size:11px;color:var(--muted);line-height:1.5}
+.report-period-button small{color:#8a5b32}
+.report-form-heading{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:22px}
+.report-form-heading h2{margin:7px 0}
+.report-form-heading p{margin:0;color:var(--muted);font-size:12px}
+.report-status{font-size:11px;color:var(--blue-deep);background:#eef3f5;border-radius:20px;padding:7px 10px;white-space:nowrap}
+.report-fields{margin-top:0}
+.report-fields textarea{min-height:100px}
+.report-actions{justify-content:flex-end}
+@media(max-width:800px){.report-layout{grid-template-columns:1fr}.report-period-list{display:grid;grid-template-columns:1fr 1fr;gap:6px}.report-period-list h2{grid-column:1/-1}.report-period-button{margin:0}.report-form-heading{flex-direction:column}}
+@media(max-width:520px){.report-period-list{grid-template-columns:1fr}.report-actions{flex-direction:column}.report-actions button{width:100%}}
