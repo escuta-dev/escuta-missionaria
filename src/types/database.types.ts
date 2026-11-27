@@ -627,7 +627,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      ensure_reporting_periods: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
     }
     Enums: {
       account_status: "pending" | "active" | "suspended"
