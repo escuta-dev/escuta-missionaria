@@ -138,3 +138,10 @@ a { color: inherit; }
 .admin-review label{display:block;color:var(--blue-deep);font-size:13px;font-weight:600;margin-bottom:8px}
 .admin-review textarea{width:100%;min-height:90px;border:1px solid #dce2e5;border-radius:8px;padding:12px;color:var(--ink);resize:vertical}
 .admin-review .request-actions{flex-wrap:wrap}
+
+.admin-report-details{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
+.admin-report-details>summary{display:flex;align-items:center;gap:9px;width:fit-content;color:var(--blue);font-size:13px;font-weight:700;cursor:pointer;list-style:none;user-select:none}
+.admin-report-details>summary::-webkit-details-marker{display:none}
+.admin-report-details>summary::before{content:"+";display:grid;place-items:center;width:22px;height:22px;border:1px solid #cbd8de;border-radius:50%;font-size:16px;line-height:1}
+.admin-report-details[open]>summary::before{content:"−"}
+.admin-report-details[open]>.admin-report-content{margin-top:18px}
