@@ -62,12 +62,15 @@ export default function AdminReportsPage(){
  <div className="request-top"><div><h2>{names[p.missionary_id]??"Missionário"}</h2><p className="request-date">{quarter(p.period_start)} · {fmt(p.period_start)} a {fmt(p.period_end)}</p></div><span className="report-status">{late?"Atrasado":status(u?.status)}</span></div>
  <div className="request-meta"><span>Prazo: {fmt(p.due_date)}</span><span>Status: {status(u?.status)}</span>{u?.submitted_at&&<span>Enviado: {new Date(u.submitted_at).toLocaleString("pt-BR")}</span>}</div>
  {!u||u.status==="draft"?<p className="request-summary">Ainda não há relatório enviado.</p>:<>
+ <details className="admin-report-details">
+ <summary>Visualizar relatório completo e ações</summary>
  <div className="admin-report-content">
   {([["Resumo",u.activities],["Atividades",u.results],["Avanços e desafios",u.challenges],["Comunidade",u.community_relationship],["Pessoas acompanhadas",u.people_reached==null?null:String(u.people_reached)],["Testemunho",u.testimony],["Situação do sustento",u.support_situation],["Necessidades urgentes",u.urgent_needs],["Apoio necessário",u.support_needed],["Próximos passos",u.next_steps],["Pedidos de oração",u.prayer_requests]] as [string,string|null][]).filter(([,v])=>v).map(([k,v])=><div key={k}><strong>{k}</strong><p>{v}</p></div>)}
  </div>
  {u.status!=="approved"&&<div className="admin-review"><label htmlFor={"note-"+u.id}>Orientação / observação da administração</label><textarea id={"note-"+u.id} value={notes[u.id]??u.review_note??""} onChange={e=>setNotes(x=>({...x,[u.id]:e.target.value}))} placeholder="Use este campo para registrar uma orientação ou pedido de complementação."/>
  <div className="request-actions"><button className="reject-button" disabled={busy===u.id} onClick={()=>void review(u,"under_review")}>Em análise</button><button className="reject-button" disabled={busy===u.id} onClick={()=>void review(u,"revision_requested")}>Solicitar complementação</button><button className="submit-button" disabled={busy===u.id} onClick={()=>void review(u,"approved")}>Aprovar relatório</button></div></div>}
  {u.status==="approved"&&u.review_note&&<p className="privacy-note">Observação registrada: {u.review_note}</p>}
+ </details>
  </>}
  </article>;})}</div>}
  </section></main>;
