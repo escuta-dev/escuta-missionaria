@@ -148,6 +148,7 @@ export default function MissionaryProfilePage() {
     const { data: authData, error: authError } = await supabase.auth.getUser();
 
     if (authError || !authData.user) {
+      setSaving(false);
       router.replace("/login");
       return;
     }
