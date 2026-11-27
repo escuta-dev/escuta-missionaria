@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabase } from "@/lib/supabase";
+import { MissionaryReportAttachments } from "@/components/missionary-report-attachments";
 
 type Period = { id: string; period_start: string; period_end: string; due_date: string | null; status: "upcoming" | "open" | "closed" };
 type Report = {
@@ -89,8 +90,9 @@ export default function MissionaryReportsPage() {
  {selected&&<section className="report-form-card"><div className="report-form-heading"><div><span className="eyebrow" style={{color:"var(--gold)"}}>Atualização do trabalho</span><h2>{title(selected)}</h2><p>Período: {date(selected.period_start)} a {date(selected.period_end)} · Prazo: {date(selected.due_date)}</p></div><span className="report-status">{label(report?.status)}</span></div>
  {report?.review_note&&<div className="notice error"><strong>Orientação da administração:</strong> {report.review_note}</div>}
  <div className="form-grid report-fields">{fields.map(f=><div className="field full" key={f.key}><label htmlFor={f.key}>{f.label}</label>{f.type==="number"?<input id={f.key} type="number" min="0" step="1" value={form[f.key]} disabled={!editable} onChange={e=>setForm(x=>({...x,[f.key]:e.target.value}))}/>:<textarea id={f.key} value={form[f.key]} disabled={!editable} onChange={e=>setForm(x=>({...x,[f.key]:e.target.value}))}/>}</div>)}</div>
+ {report?.id&&<MissionaryReportAttachments updateId={report.id} missionaryId={missionaryId} editable={editable}/>}
  {editable?<div className="request-actions report-actions"><button className="reject-button" disabled={saving} onClick={()=>void save(false)}>Salvar rascunho</button><button className="submit-button" disabled={saving} onClick={()=>void save(true)}>{saving?"Enviando...":"Enviar para análise"}</button></div>:<p className="privacy-note">Este relatório não está disponível para edição nesta etapa.</p>}
- <p className="privacy-note">Nenhuma informação será divulgada publicamente sem autorização específica e separada. Anexos e fotos serão incluídos em etapa posterior, após configuração do armazenamento privado.</p>
+ <p className="privacy-note">Nenhuma informação ou arquivo será divulgado publicamente sem autorização específica e separada.</p>
  </section>}</div>}
  </section></main>;
 }
