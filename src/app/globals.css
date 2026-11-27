@@ -145,3 +145,16 @@ a { color: inherit; }
 .admin-report-details>summary::before{content:"+";display:grid;place-items:center;width:22px;height:22px;border:1px solid #cbd8de;border-radius:50%;font-size:16px;line-height:1}
 .admin-report-details[open]>summary::before{content:"−"}
 .admin-report-details[open]>.admin-report-content{margin-top:18px}
+
+.report-attachments{margin-top:24px;padding:18px;border:1px solid var(--line);border-radius:10px;background:#fbfcfc}
+.report-attachments h3{margin:0 0 7px;color:var(--blue-deep);font:600 19px "Playfair Display",Georgia,serif}
+.attachment-list{list-style:none;padding:0;margin:12px 0;display:grid;gap:8px}
+.attachment-list li{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 12px;background:#fff;border:1px solid var(--line);border-radius:8px}
+.attachment-list li>span{display:flex;flex-direction:column;gap:3px;min-width:0}
+.attachment-list strong{font-size:12px;color:var(--blue-deep);overflow-wrap:anywhere}
+.attachment-list small{font-size:11px;color:var(--muted)}
+.attachment-actions{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.attachment-upload{display:inline-flex;align-items:center;justify-content:center;margin-top:10px;padding:11px 15px;border:1px solid #cbd8de;border-radius:8px;color:var(--blue);font-size:13px;font-weight:700;cursor:pointer;background:#fff}
+.attachment-upload input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.attachment-upload:has(input:disabled){opacity:.5;cursor:not-allowed}
+@media(max-width:520px){.attachment-list li{align-items:flex-start;flex-direction:column}.attachment-actions{width:100%;justify-content:flex-start}}
