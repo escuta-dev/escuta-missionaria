@@ -88,10 +88,10 @@ export default function MissionaryPage() {
                   </a>
                 </div>
               </article>
-              <div className="empty-state">
-                <h2>Relatórios trimestrais</h2>
-                <p>Esta funcionalidade será disponibilizada em uma próxima etapa.</p>
-              </div>
+              <article className="request-card">
+                <div className="request-top"><div><h2>Relatórios trimestrais</h2><p className="request-date">Envie suas atualizações a cada trimestre e acompanhe o retorno da administração.</p></div></div>
+                <div className="request-actions"><a className="submit-button" href="/missionario/relatorios" style={{display:"inline-block",width:"auto",textDecoration:"none"}}>Acessar relatórios</a></div>
+              </article>
             </div>
           </>
         )}
