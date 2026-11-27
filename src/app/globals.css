@@ -14,7 +14,7 @@
 * { box-sizing: border-box; }
 html { min-height: 100%; background: var(--off-white); }
 body { margin: 0; color: var(--ink); font-family: "DM Sans", Arial, sans-serif; background: var(--off-white); }
-button, input, textarea { font: inherit; }
+button, input, textarea, select { font: inherit; }
 a { color: inherit; }
 .page-shell { min-height: 100vh; }
 .topbar { height: 76px; display: flex; align-items: center; justify-content: space-between; max-width: 1160px; margin: 0 auto; padding: 0 28px; }
@@ -35,8 +35,8 @@ a { color: inherit; }
 .field { display: flex; flex-direction: column; gap: 7px; }
 .field.full { grid-column: 1 / -1; }
 .field label { color: var(--blue-deep); font-weight: 600; font-size: 13px; }
-.field input, .field textarea { width: 100%; border: 1px solid #dce2e5; border-radius: 8px; background: #fff; color: var(--ink); padding: 12px 13px; outline: none; transition: border .15s, box-shadow .15s; }
-.field input:focus, .field textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(66,107,131,.12); }
+.field input, .field textarea, .field select { width: 100%; border: 1px solid #dce2e5; border-radius: 8px; background: #fff; color: var(--ink); padding: 12px 13px; outline: none; transition: border .15s, box-shadow .15s; }
+.field input:focus, .field textarea:focus, .field select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(66,107,131,.12); }
 .field textarea { min-height: 126px; resize: vertical; line-height: 1.6; }
 .hint { color: var(--muted); font-size: 11px; line-height: 1.5; }
 .turnstile-slot { min-height: 66px; display: flex; align-items: center; }
