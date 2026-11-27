@@ -96,6 +96,9 @@ export default function AdminPage() {
         <div className="eyebrow" style={{ color: "var(--gold)" }}>Administração</div>
         <h1>Solicitações de participação</h1>
         <p className="admin-lead">Analise os pedidos recebidos. O convite só é enviado após sua aprovação.</p>
+        <div className="request-actions" style={{marginBottom: "22px"}}>
+          <a className="submit-button" href="/admin/relatorios" style={{display:"inline-block",width:"auto",textDecoration:"none"}}>Acessar relatórios trimestrais</a>
+        </div>
         {notice && <div role="status" className="notice success">{notice}</div>}
         {error && <div role="alert" className="notice error">{error}</div>}
         {loading ? <p>Carregando solicitações...</p> : error ? null : requests.length === 0 ? (
