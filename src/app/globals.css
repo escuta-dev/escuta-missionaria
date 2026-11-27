@@ -128,3 +128,13 @@ a { color: inherit; }
 .report-actions{justify-content:flex-end}
 @media(max-width:800px){.report-layout{grid-template-columns:1fr}.report-period-list{display:grid;grid-template-columns:1fr 1fr;gap:6px}.report-period-list h2{grid-column:1/-1}.report-period-button{margin:0}.report-form-heading{flex-direction:column}}
 @media(max-width:520px){.report-period-list{grid-template-columns:1fr}.report-actions{flex-direction:column}.report-actions button{width:100%}}
+
+
+.admin-report-content{display:grid;gap:13px;margin-top:20px}
+.admin-report-content>div{border-top:1px solid var(--line);padding-top:10px}
+.admin-report-content strong{display:block;color:var(--blue-deep);font-size:12px;margin-bottom:5px}
+.admin-report-content p{margin:0;color:var(--ink);font-size:13px;line-height:1.7;white-space:pre-wrap}
+.admin-review{margin-top:20px;border-top:1px solid var(--line);padding-top:18px}
+.admin-review label{display:block;color:var(--blue-deep);font-size:13px;font-weight:600;margin-bottom:8px}
+.admin-review textarea{width:100%;min-height:90px;border:1px solid #dce2e5;border-radius:8px;padding:12px;color:var(--ink);resize:vertical}
+.admin-review .request-actions{flex-wrap:wrap}
