@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabase } from "@/lib/supabase";
+import { MissionaryReportAttachments } from "@/components/missionary-report-attachments";
 
 type Period={id:string;missionary_id:string;period_start:string;period_end:string;due_date:string|null;status:"upcoming"|"open"|"closed"};
 type Update={id:string;reporting_period_id:string;missionary_id:string;activities:string|null;results:string|null;challenges:string|null;community_relationship:string|null;people_reached:number|null;testimony:string|null;support_situation:string|null;urgent_needs:string|null;support_needed:string|null;next_steps:string|null;prayer_requests:string|null;status:"draft"|"submitted"|"under_review"|"approved"|"revision_requested";submitted_at:string|null;reviewed_at:string|null;review_note:string|null};
@@ -67,6 +68,7 @@ export default function AdminReportsPage(){
  <div className="admin-report-content">
   {([["Resumo",u.activities],["Atividades",u.results],["Avanços e desafios",u.challenges],["Comunidade",u.community_relationship],["Pessoas acompanhadas",u.people_reached==null?null:String(u.people_reached)],["Testemunho",u.testimony],["Situação do sustento",u.support_situation],["Necessidades urgentes",u.urgent_needs],["Apoio necessário",u.support_needed],["Próximos passos",u.next_steps],["Pedidos de oração",u.prayer_requests]] as [string,string|null][]).filter(([,v])=>v).map(([k,v])=><div key={k}><strong>{k}</strong><p>{v}</p></div>)}
  </div>
+ <MissionaryReportAttachments updateId={u.id} isAdmin />
  {u.status!=="approved"&&<div className="admin-review"><label htmlFor={"note-"+u.id}>Orientação / observação da administração</label><textarea id={"note-"+u.id} value={notes[u.id]??u.review_note??""} onChange={e=>setNotes(x=>({...x,[u.id]:e.target.value}))} placeholder="Use este campo para registrar uma orientação ou pedido de complementação."/>
  <div className="request-actions"><button className="reject-button" disabled={busy===u.id} onClick={()=>void review(u,"under_review")}>Em análise</button><button className="reject-button" disabled={busy===u.id} onClick={()=>void review(u,"revision_requested")}>Solicitar complementação</button><button className="submit-button" disabled={busy===u.id} onClick={()=>void review(u,"approved")}>Aprovar relatório</button></div></div>}
  {u.status==="approved"&&u.review_note&&<p className="privacy-note">Observação registrada: {u.review_note}</p>}
