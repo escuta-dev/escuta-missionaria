@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { getAuthenticatedDestination } from "@/lib/auth-routing";
 import { getSupabase } from "@/lib/supabase";
 
 export default function LoginPage() {
@@ -16,13 +17,24 @@ export default function LoginPage() {
     event.preventDefault();
     setBusy(true);
     setMessage("");
+
     const { error } = await getSupabase().auth.signInWithPassword({ email, password });
-    setBusy(false);
     if (error) {
+      setBusy(false);
       setMessage("Não foi possível entrar. Confira o e-mail e a senha.");
       return;
     }
-    router.replace("/admin");
+
+    const destination = await getAuthenticatedDestination();
+    setBusy(false);
+
+    if (!destination.path) {
+      await getSupabase().auth.signOut();
+      setMessage(destination.error ?? "Não foi possível validar seu acesso.");
+      return;
+    }
+
+    router.replace(destination.path);
   }
 
   async function recover() {
